@@ -44,5 +44,20 @@ main(int, char **)
     // Should print nothing
     s.invoke(4, 5);
 
+    NoArgBoltSignal bs;
+
+    // Should print nothing
+    bs.invoke();
+
+    bs.connect([]() {
+        cout << "only printed once" << endl;
+    });
+
+    // Should print "only printed once"
+    bs.invoke();
+
+    // Should print nothing
+    bs.invoke();
+
     return 0;
 }

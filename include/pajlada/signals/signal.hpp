@@ -68,6 +68,30 @@ private:
     }
 };
 
+/// Bolt Signals (1-time use)
+// connect is fast
+// disconnect doesn't exist
+// invoke is fast
+template <class... Args>
+class BaseBoltSignal
+{
+protected:
+    BaseBoltSignal() = default;
+
+protected:
+    typedef std::function<void(Args...)> CallbackType;
+
+public:
+    void
+    connect(CallbackType cb)
+    {
+        this->callbacks.push_back(std::move(cb));
+    }
+
+protected:
+    std::vector<CallbackType> callbacks;
+};
+
 }  // anonymous namespace
 
 // Signal that takes 1+ arguments
@@ -94,6 +118,35 @@ public:
         for (Callback &callback : this->callbacks) {
             callback.func();
         }
+    }
+};
+
+class NoArgBoltSignal : public detail::BaseBoltSignal<>
+{
+public:
+    void
+    invoke()
+    {
+        for (CallbackType &callback : this->callbacks) {
+            callback();
+        }
+
+        this->callbacks.clear();
+    }
+};
+
+template <class... Args>
+class BoltSignal : public detail::BaseBoltSignal<Args...>
+{
+public:
+    void
+    invoke(Args... args)
+    {
+        for (CallbackType &callback : this->callbacks) {
+            callback.func(args...);
+        }
+
+        this->callbacks.clear();
     }
 };
 
