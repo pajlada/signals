@@ -3,7 +3,7 @@ simple C++ signal library
 
 ## Usage
 ```c++
-Signal<int, int> s;
+pajlada::Signals::Signal<int, int> s;
 
 uint64_t cX = s.connect([](int a, int b) {
     cout << "X " << a << ", " << b << endl;  //

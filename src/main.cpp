@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <iostream>
 
-using namespace pajlada::signals;
+using namespace pajlada::Signals;
 using namespace std;
 
 int

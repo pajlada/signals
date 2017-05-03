@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace pajlada {
-namespace signals {
+namespace Signals {
 
 namespace detail {
 
@@ -97,5 +97,5 @@ public:
     }
 };
 
-}  // namespace signals
+}  // namespace Signals
 }  // namespace pajlada
