@@ -7,6 +7,8 @@
 namespace pajlada {
 namespace Signals {
 
+typedef uint64_t ConnectionType;
+
 namespace detail {
 
 template <class... Args>
@@ -16,7 +18,7 @@ protected:
     BaseSignal() = default;
 
 public:
-    using Connection = uint64_t;
+    using Connection = ConnectionType;
 
 protected:
     typedef std::function<void(Args...)> CallbackType;
@@ -27,7 +29,7 @@ protected:
     };
 
 public:
-    // Return connection ID (we'll use uint64_t)
+    // Return connection ID
     // CallbackType = lambda/std::bind'ed function etc
     // TODO: see if we can use && etc on the argument here, idk c++ tho
     Connection
