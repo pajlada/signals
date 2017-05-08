@@ -1,5 +1,7 @@
-# C++ objects and libs
+# Binary file
+signals
 
+# C++ objects and libs
 *.slo
 *.lo
 *.o
@@ -11,7 +13,6 @@
 *.dylib
 
 # Qt-es
-
 /.qmake.cache
 /.qmake.stash
 *.pro.user
@@ -26,7 +27,6 @@ Makefile*
 *build-*
 
 # QtCreator
-
 *.autosave
 
 # QtCtreator Qml

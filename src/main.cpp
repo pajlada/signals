@@ -50,7 +50,7 @@ main(int, char **)
     bs.invoke();
 
     bs.connect([]() {
-        cout << "only printed once" << endl;
+        cout << "only printed once" << endl;  //
     });
 
     // Should print "only printed once"

@@ -15,13 +15,16 @@ template <class... Args>
 class BaseSignal
 {
 protected:
-    BaseSignal() = default;
+    BaseSignal()
+        : latestConnection(0)
+    {
+    }
 
 public:
     using Connection = ConnectionType;
 
 protected:
-    typedef std::function<void(Args...)> CallbackType;
+    using CallbackType = std::function<void(Args...)>;
 
     struct Callback {
         Connection connection;
@@ -46,7 +49,9 @@ public:
     bool
     disconnect(Connection connection)
     {
-        for (std::vector<Callback>::size_type i = 0, n = this->callbacks.size();
+        for (typename std::vector<Callback>::size_type
+                 i = 0,
+                 n = this->callbacks.size();
              i < n; ++i) {
             if (this->callbacks[i].connection == connection) {
                 this->callbacks.erase(std::begin(this->callbacks) + i);
@@ -61,7 +66,7 @@ protected:
     std::vector<Callback> callbacks;
 
 private:
-    std::atomic<Connection> latestConnection = 0;
+    std::atomic<Connection> latestConnection;
 
     Connection
     nextConnection()
@@ -94,7 +99,7 @@ protected:
     std::vector<CallbackType> callbacks;
 };
 
-}  // anonymous namespace
+}  // namespace detail
 
 // Signal that takes 1+ arguments
 template <class... Args>
@@ -104,7 +109,7 @@ public:
     void
     invoke(Args... args)
     {
-        for (Callback &callback : this->callbacks) {
+        for (auto &callback : this->callbacks) {
             callback.func(args...);
         }
     }
@@ -117,7 +122,7 @@ public:
     void
     invoke()
     {
-        for (Callback &callback : this->callbacks) {
+        for (auto &callback : this->callbacks) {
             callback.func();
         }
     }
@@ -129,7 +134,7 @@ public:
     void
     invoke()
     {
-        for (CallbackType &callback : this->callbacks) {
+        for (auto &callback : this->callbacks) {
             callback();
         }
 
@@ -144,7 +149,7 @@ public:
     void
     invoke(Args... args)
     {
-        for (CallbackType &callback : this->callbacks) {
+        for (auto &callback : this->callbacks) {
             callback.func(args...);
         }
 
