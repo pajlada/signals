@@ -101,6 +101,38 @@ protected:
 
 }  // namespace detail
 
+template <typename Type>
+class ScopedConnection
+{
+public:
+    ScopedConnection() = default;
+
+    ScopedConnection(const ConnectionType &_index,
+                     detail::BaseSignal<Type> *_signal)
+        : index(_index)
+        , signal(_signal)
+    {
+    }
+
+    ~ScopedConnection()
+    {
+        if (this->signal != nullptr) {
+            this->signal->disconnect(this->index);
+        }
+    }
+
+    void
+    init(const ConnectionType &_index, detail::BaseSignal<Type> *_signal)
+    {
+        this->index = _index;
+        this->signal = _signal;
+    }
+
+private:
+    ConnectionType index = 0;
+    detail::BaseSignal<Type> *signal = nullptr;
+};
+
 // Signal that takes 1+ arguments
 template <class... Args>
 class Signal : public detail::BaseSignal<Args...>
