@@ -105,7 +105,9 @@ template <typename Type>
 class ScopedConnection
 {
 public:
-    ScopedConnection() = default;
+    ScopedConnection() = delete;
+
+    ScopedConnection(const ScopedConnection &other) = delete;
 
     ScopedConnection(const ConnectionType &_index,
                      detail::BaseSignal<Type> *_signal)
@@ -114,18 +116,18 @@ public:
     {
     }
 
+    ScopedConnection(ScopedConnection &&other)
+        : index(std::move(other.index))
+        , signal(std::move(other.signal))
+    {
+        other.signal = nullptr;
+    }
+
     ~ScopedConnection()
     {
         if (this->signal != nullptr) {
             this->signal->disconnect(this->index);
         }
-    }
-
-    void
-    init(const ConnectionType &_index, detail::BaseSignal<Type> *_signal)
-    {
-        this->index = _index;
-        this->signal = _signal;
     }
 
 private:
