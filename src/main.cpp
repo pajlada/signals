@@ -14,35 +14,86 @@ main(int, char **)
     // Should print nothing
     s.invoke(0, 1);
 
-    uint64_t cX = s.connect([](int a, int b) {
+    auto cX = s.connect([](int a, int b) {
         cout << "X " << a << ", " << b << endl;  //
     });
 
     // Should print:
     // X 1, 2
+    cout << "# s.invoke(1, 2): Should print 'X 1, 2'" << endl;
     s.invoke(1, 2);
+    cout << "\n\n";
 
-    uint64_t cY = s.connect([](int a, int b) {
+    auto cY = s.connect([](int a, int b) {
         cout << "Y " << b << ", " << a << endl;  //
     });
 
-    // Should print:
-    // X 2, 3
-    // Y 3, 2
+    cout << "# s.invoke(2, 3): Should print 'X 2, 3' and 'Y 3, 2'" << endl;
     s.invoke(2, 3);
+    cout << "\n\n";
 
-    assert(s.disconnect(cX));
-    assert(!s.disconnect(cX));
+    cX.block();
 
-    // Should print:
-    // Y: 4, 3
+    cout << "# s.invoke(2, 3): Should print 'Y 3, 2'" << endl;
+    s.invoke(2, 3);
+    cout << "\n\n";
+
+    cX.unblock();
+
+    cout << "# s.invoke(2, 3): Should print 'X 2, 3' and 'Y 3, 2'" << endl;
+    s.invoke(2, 3);
+    cout << "\n\n";
+
+    {
+        ScopedBlock blockX(cX);
+
+        cout << "# s.invoke(2, 3): Should print 'Y 3, 2'" << endl;
+        s.invoke(2, 3);
+        cout << "\n\n";
+
+        {
+            ScopedBlock blockY(cY);
+
+            cout << "# s.invoke(4, 5): Should print nothing" << endl;
+            s.invoke(4, 5);
+            cout << "\n\n";
+
+            {
+                ScopedBlock blockX2(cX);
+
+                cout << "# s.invoke(4, 5): Should print nothing" << endl;
+                s.invoke(4, 5);
+                cout << "\n\n";
+            }
+
+            cout << "# s.invoke(4, 5): Should print nothing" << endl;
+            s.invoke(4, 5);
+            cout << "\n\n";
+        }
+
+        cout << "# s.invoke(2, 3): Should print 'Y 3, 2'" << endl;
+        s.invoke(2, 3);
+        cout << "\n\n";
+    }
+
+    cout << "# s.invoke(2, 3): Should print 'X 2, 3' and 'Y 3, 2'" << endl;
+    s.invoke(2, 3);
+    cout << "\n\n";
+
+    assert(cX.disconnect());
+    assert(!cX.disconnect());
+
+    cout << "# s.invoke(3, 4): Should print 'Y 4, 3'" << endl;
     s.invoke(3, 4);
+    cout << "\n\n";
 
-    assert(s.disconnect(cY));
-    assert(!s.disconnect(cY));
+    assert(cY.disconnect());
+    assert(!cY.disconnect());
 
     // Should print nothing
+    cout << "# s.invoke(4, 5): Should print nothing" << endl;
     s.invoke(4, 5);
+    cout << "\n\n";
 
     NoArgBoltSignal bs;
 
@@ -53,11 +104,13 @@ main(int, char **)
         cout << "only printed once" << endl;  //
     });
 
-    // Should print "only printed once"
+    cout << "# bs.invoke(): Should print 'only printed once'" << endl;
     bs.invoke();
+    cout << "\n\n";
 
-    // Should print nothing
+    cout << "# bs.invoke(): Should print nothing" << endl;
     bs.invoke();
+    cout << "\n\n";
 
     return 0;
 }

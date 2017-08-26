@@ -7,12 +7,20 @@
 namespace pajlada {
 namespace Signals {
 
-typedef uint64_t ConnectionType;
+struct Connection;
 
 namespace detail {
 
+class UltraBaseSignal
+{
+public:
+    virtual bool disconnect(uint64_t index) = 0;
+    virtual bool block(uint64_t index) = 0;
+    virtual bool unblock(uint64_t index) = 0;
+};
+
 template <class... Args>
-class BaseSignal
+class BaseSignal : public UltraBaseSignal
 {
 protected:
     BaseSignal()
@@ -20,14 +28,11 @@ protected:
     {
     }
 
-public:
-    using Connection = ConnectionType;
-
-protected:
     using CallbackType = std::function<void(Args...)>;
 
     struct Callback {
-        Connection connection;
+        uint64_t index;
+        bool blocked = false;
         CallbackType func;
     };
 
@@ -35,26 +40,42 @@ public:
     // Return connection ID
     // CallbackType = lambda/std::bind'ed function etc
     // TODO: see if we can use && etc on the argument here, idk c++ tho
-    Connection
-    connect(CallbackType cb)
-    {
-        Connection connection(this->nextConnection());
-
-        this->callbacks.push_back(Callback{connection, std::move(cb)});
-
-        return connection;
-    }
+    Connection connect(CallbackType func);
 
     // NOTE: I'm not sure if this is threadsafe together with invoke
-    bool
-    disconnect(Connection connection)
+    virtual bool
+    disconnect(uint64_t index) override
     {
-        for (typename std::vector<Callback>::size_type
-                 i = 0,
-                 n = this->callbacks.size();
-             i < n; ++i) {
-            if (this->callbacks[i].connection == connection) {
+        for (typename std::vector<Callback>::size_type i = 0, n = this->callbacks.size(); i < n;
+             ++i) {
+            if (this->callbacks[i].index == index) {
                 this->callbacks.erase(std::begin(this->callbacks) + i);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    virtual bool
+    block(uint64_t index) override
+    {
+        for (auto &cb : this->callbacks) {
+            if (cb.index == index) {
+                cb.blocked = true;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    virtual bool
+    unblock(uint64_t index) override
+    {
+        for (auto &cb : this->callbacks) {
+            if (cb.index == index) {
+                cb.blocked = false;
                 return true;
             }
         }
@@ -66,9 +87,9 @@ protected:
     std::vector<Callback> callbacks;
 
 private:
-    std::atomic<Connection> latestConnection;
+    std::atomic<uint64_t> latestConnection;
 
-    Connection
+    uint64_t
     nextConnection()
     {
         return ++this->latestConnection;
@@ -101,38 +122,82 @@ protected:
 
 }  // namespace detail
 
-template <typename Type>
-class ScopedConnection
-{
-public:
-    ScopedConnection() = delete;
+struct Connection {
+    Connection() = delete;
+    Connection(const Connection &other) = delete;
 
-    ScopedConnection(const ScopedConnection &other) = delete;
-
-    ScopedConnection(const ConnectionType &_index,
-                     detail::BaseSignal<Type> *_signal)
-        : index(_index)
-        , signal(_signal)
+    Connection(detail::UltraBaseSignal *_signal, uint64_t _index)
+        : signal(_signal)
+        , index(_index)
     {
     }
 
-    ScopedConnection(ScopedConnection &&other)
-        : index(std::move(other.index))
-        , signal(std::move(other.signal))
+    Connection(Connection &&other)
+        : signal(std::move(other.signal))
+        , index(std::move(other.index))
+        , blockCounter(std::move(other.blockCounter))
     {
-        other.signal = nullptr;
     }
 
-    ~ScopedConnection()
-    {
-        if (this->signal != nullptr) {
-            this->signal->disconnect(this->index);
-        }
-    }
+    detail::UltraBaseSignal *const signal;
+    const uint64_t index;
+
+    bool disconnect();
+    bool block();
+    bool unblock();
 
 private:
-    ConnectionType index = 0;
-    detail::BaseSignal<Type> *signal = nullptr;
+    uint32_t blockCounter = 0;
+};
+
+bool
+Connection::disconnect()
+{
+    return this->signal->disconnect(this->index);
+}
+
+bool
+Connection::block()
+{
+    ++this->blockCounter;
+    if (this->blockCounter == 1) {
+        return this->signal->block(this->index);
+    }
+
+    return false;
+}
+
+bool
+Connection::unblock()
+{
+    if (this->blockCounter == 0) {
+        // Cannot unblock more times than you blocked forsenE
+        return false;
+    }
+
+    --this->blockCounter;
+    if (this->blockCounter == 0) {
+        return this->signal->unblock(this->index);
+    }
+
+    return false;
+}
+
+struct ScopedBlock {
+    ScopedBlock() = delete;
+
+    ScopedBlock(Connection &_connection)
+        : connection(_connection)
+    {
+        this->connection.block();
+    }
+
+    ~ScopedBlock()
+    {
+        this->connection.unblock();
+    }
+
+    Connection &connection;
 };
 
 // Signal that takes 1+ arguments
@@ -144,7 +209,9 @@ public:
     invoke(Args... args)
     {
         for (auto &callback : this->callbacks) {
-            callback.func(args...);
+            if (!callback.blocked) {
+                callback.func(args...);
+            }
         }
     }
 };
@@ -190,6 +257,25 @@ public:
         this->callbacks.clear();
     }
 };
+
+namespace detail {
+
+template <class... Args>
+Connection
+BaseSignal<Args...>::connect(CallbackType func)
+{
+    uint64_t connectionIndex = this->nextConnection();
+
+    Callback cb;
+    cb.func = std::move(func);
+    cb.index = connectionIndex;
+
+    this->callbacks.emplace_back(std::move(cb));
+
+    return Connection(this, connectionIndex);
+}
+
+}  // namespace detail
 
 }  // namespace Signals
 }  // namespace pajlada
