@@ -123,8 +123,14 @@ protected:
 }  // namespace detail
 
 struct Connection {
-    Connection() = delete;
-    Connection(const Connection &other) = delete;
+    Connection()
+        : signal(nullptr)
+        , index(0)
+        , blockCounter(0)
+    {
+    }
+
+    // Connection(const Connection &other) = delete;
 
     Connection(detail::UltraBaseSignal *_signal, uint64_t _index)
         : signal(_signal)
@@ -132,6 +138,7 @@ struct Connection {
     {
     }
 
+    /*
     Connection(Connection &&other)
         : signal(std::move(other.signal))
         , index(std::move(other.index))
@@ -139,49 +146,84 @@ struct Connection {
     {
     }
 
-    detail::UltraBaseSignal *const signal;
-    const uint64_t index;
+    // Connection &operator=(const Connection &other) = delete;
 
-    bool disconnect();
-    bool block();
-    bool unblock();
+    Connection &
+    operator=(Connection &&other)
+    {
+        this->signal = std::move(other.signal);
+        this->index = std::move(other.index);
+        this->blockCounter = std::move(other.blockCounter);
+
+        return *this;
+    }
+    */
+
+    detail::UltraBaseSignal *signal;
+    uint64_t index;
+
+    bool
+    disconnect()
+    {
+        if (this->signal) {
+            return this->signal->disconnect(this->index);
+        }
+
+        return false;
+    }
+
+    bool
+    block()
+    {
+        if (this->signal) {
+            ++this->blockCounter;
+            if (this->blockCounter == 1) {
+                return this->signal->block(this->index);
+            }
+
+            return false;
+        }
+
+        return false;
+    }
+
+    bool
+    unblock()
+    {
+        if (this->signal) {
+            if (this->blockCounter == 0) {
+                // Cannot unblock more times than you blocked forsenE
+                return false;
+            }
+
+            --this->blockCounter;
+            if (this->blockCounter == 0) {
+                return this->signal->unblock(this->index);
+            }
+
+            return false;
+        }
+
+        return false;
+    }
 
 private:
     uint32_t blockCounter = 0;
 };
 
-bool
-Connection::disconnect()
-{
-    return this->signal->disconnect(this->index);
-}
-
-bool
-Connection::block()
-{
-    ++this->blockCounter;
-    if (this->blockCounter == 1) {
-        return this->signal->block(this->index);
+struct ScopedConnection {
+    ScopedConnection(Connection &&_connection)
+        : connection(std::move(_connection))
+    {
     }
 
-    return false;
-}
-
-bool
-Connection::unblock()
-{
-    if (this->blockCounter == 0) {
-        // Cannot unblock more times than you blocked forsenE
-        return false;
+    ~ScopedConnection()
+    {
+        this->connection.disconnect();
     }
 
-    --this->blockCounter;
-    if (this->blockCounter == 0) {
-        return this->signal->unblock(this->index);
-    }
-
-    return false;
-}
+    Connection connection;
+};
 
 struct ScopedBlock {
     ScopedBlock() = delete;
