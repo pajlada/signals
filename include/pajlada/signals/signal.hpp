@@ -225,6 +225,19 @@ class Signal : public detail::BaseSignal<Args...>
 {
 public:
     void
+    invokeOne(uint64_t index, Args... args)
+    {
+        for (auto &callback : this->callbacks) {
+            if (callback.index == index) {
+                if (!callback.blocked) {
+                    callback.func(args...);
+                }
+                break;
+            }
+        }
+    }
+
+    void
     invoke(Args... args)
     {
         for (auto &callback : this->callbacks) {
@@ -257,9 +270,7 @@ public:
     invoke()
     {
         for (auto &callback : this->callbacks) {
-            if (!callback.blocked) {
-                callback();
-            }
+            callback();
         }
 
         this->callbacks.clear();
@@ -274,9 +285,7 @@ public:
     invoke(Args... args)
     {
         for (auto &callback : this->callbacks) {
-            if (!callback.blocked) {
-                callback.func(args...);
-            }
+            callback.func(args...);
         }
 
         this->callbacks.clear();
