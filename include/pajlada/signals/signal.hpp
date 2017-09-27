@@ -243,7 +243,9 @@ public:
     invoke()
     {
         for (auto &callback : this->callbacks) {
-            callback.func();
+            if (!callback.blocked) {
+                callback.func();
+            }
         }
     }
 };
@@ -255,7 +257,9 @@ public:
     invoke()
     {
         for (auto &callback : this->callbacks) {
-            callback();
+            if (!callback.blocked) {
+                callback();
+            }
         }
 
         this->callbacks.clear();
@@ -270,7 +274,9 @@ public:
     invoke(Args... args)
     {
         for (auto &callback : this->callbacks) {
-            callback.func(args...);
+            if (!callback.blocked) {
+                callback.func(args...);
+            }
         }
 
         this->callbacks.clear();
