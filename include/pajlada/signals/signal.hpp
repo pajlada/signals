@@ -130,34 +130,11 @@ struct Connection {
     {
     }
 
-    // Connection(const Connection &other) = delete;
-
     Connection(detail::UltraBaseSignal *_signal, uint64_t _index)
         : signal(_signal)
         , index(_index)
     {
     }
-
-    /*
-    Connection(Connection &&other)
-        : signal(std::move(other.signal))
-        , index(std::move(other.index))
-        , blockCounter(std::move(other.blockCounter))
-    {
-    }
-
-    // Connection &operator=(const Connection &other) = delete;
-
-    Connection &
-    operator=(Connection &&other)
-    {
-        this->signal = std::move(other.signal);
-        this->index = std::move(other.index);
-        this->blockCounter = std::move(other.blockCounter);
-
-        return *this;
-    }
-    */
 
     detail::UltraBaseSignal *signal;
     uint64_t index;
