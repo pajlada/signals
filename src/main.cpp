@@ -12,8 +12,11 @@ main(int, char **)
     Signal<int, int> s;
 
     // Should print nothing
+    cout << "# s.invoke(0, 1): Should print nothing" << endl;
     s.invoke(0, 1);
+    cout << "\n\n";
 
+    cout << "+ connected X" << endl;
     auto cX = s.connect([](int a, int b) {
         cout << "X " << a << ", " << b << endl;  //
     });
@@ -24,6 +27,7 @@ main(int, char **)
     s.invoke(1, 2);
     cout << "\n\n";
 
+    cout << "+ connected Y" << endl;
     auto cY = s.connect([](int a, int b) {
         cout << "Y " << b << ", " << a << endl;  //
     });
@@ -32,54 +36,27 @@ main(int, char **)
     s.invoke(2, 3);
     cout << "\n\n";
 
-    cX.block();
+    cout << "% blocked X" << endl;
+    assert(cX.block());   // first block, this should succeed
+    assert(!cX.block());  // cX is already blocked, this should fail
 
     cout << "# s.invoke(2, 3): Should print 'Y 3, 2'" << endl;
     s.invoke(2, 3);
     cout << "\n\n";
 
-    cX.unblock();
+    cout << "% unblocked X" << endl;
+    assert(cX.unblock());   // cX is currently blocked, this should succeed
+    assert(!cX.unblock());  // cX is not blocked, this should fail
 
     cout << "# s.invoke(2, 3): Should print 'X 2, 3' and 'Y 3, 2'" << endl;
     s.invoke(2, 3);
     cout << "\n\n";
 
-    {
-        ScopedBlock blockX(cX);
-
-        cout << "# s.invoke(2, 3): Should print 'Y 3, 2'" << endl;
-        s.invoke(2, 3);
-        cout << "\n\n";
-
-        {
-            ScopedBlock blockY(cY);
-
-            cout << "# s.invoke(4, 5): Should print nothing" << endl;
-            s.invoke(4, 5);
-            cout << "\n\n";
-
-            {
-                ScopedBlock blockX2(cX);
-
-                cout << "# s.invoke(4, 5): Should print nothing" << endl;
-                s.invoke(4, 5);
-                cout << "\n\n";
-            }
-
-            cout << "# s.invoke(4, 5): Should print nothing" << endl;
-            s.invoke(4, 5);
-            cout << "\n\n";
-        }
-
-        cout << "# s.invoke(2, 3): Should print 'Y 3, 2'" << endl;
-        s.invoke(2, 3);
-        cout << "\n\n";
-    }
-
     cout << "# s.invoke(2, 3): Should print 'X 2, 3' and 'Y 3, 2'" << endl;
     s.invoke(2, 3);
     cout << "\n\n";
 
+    cout << "- disconnected X" << endl;
     assert(cX.disconnect());
     assert(!cX.disconnect());
 
@@ -87,29 +64,13 @@ main(int, char **)
     s.invoke(3, 4);
     cout << "\n\n";
 
+    cout << "- disconnected Y" << endl;
     assert(cY.disconnect());
     assert(!cY.disconnect());
 
     // Should print nothing
     cout << "# s.invoke(4, 5): Should print nothing" << endl;
     s.invoke(4, 5);
-    cout << "\n\n";
-
-    NoArgBoltSignal bs;
-
-    // Should print nothing
-    bs.invoke();
-
-    bs.connect([]() {
-        cout << "only printed once" << endl;  //
-    });
-
-    cout << "# bs.invoke(): Should print 'only printed once'" << endl;
-    bs.invoke();
-    cout << "\n\n";
-
-    cout << "# bs.invoke(): Should print nothing" << endl;
-    bs.invoke();
     cout << "\n\n";
 
     return 0;

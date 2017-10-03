@@ -1,26 +1,23 @@
 #pragma once
 
+#include "pajlada/signals/connection.hpp"
+
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <vector>
 
 namespace pajlada {
 namespace Signals {
-
-struct Connection;
-
 namespace detail {
 
-class UltraBaseSignal
+template <typename... Args>
+class Subscriber
 {
-public:
-    virtual bool disconnect(uint64_t index) = 0;
-    virtual bool block(uint64_t index) = 0;
-    virtual bool unblock(uint64_t index) = 0;
 };
 
-template <class... Args>
-class BaseSignal : public UltraBaseSignal
+template <typename... Args>
+class BaseSignal
 {
 protected:
     BaseSignal()
@@ -28,24 +25,22 @@ protected:
     {
     }
 
-    using CallbackType = std::function<void(Args...)>;
-
-    struct Callback {
-        uint64_t index;
-        bool blocked = false;
-        CallbackType func;
-    };
-
 public:
-    // Return connection ID
-    // CallbackType = lambda/std::bind'ed function etc
-    // TODO: see if we can use && etc on the argument here, idk c++ tho
-    Connection connect(CallbackType func);
+    using CallbackBodyType = CallbackBody<Args...>;
 
-    // NOTE: I'm not sure if this is threadsafe together with invoke
-    virtual bool
-    disconnect(uint64_t index) override
+    std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
+
+    Connection connect(typename CallbackBodyType::FunctionSignature func);
+
+    void
+    disconnect(uint64_t index)
     {
+        for (auto body : this->callbackBodies) {
+            if (body->index == index) {
+                body->disconnect();
+            }
+        }
+
         for (typename std::vector<Callback>::size_type i = 0, n = this->callbacks.size(); i < n;
              ++i) {
             if (this->callbacks[i].index == index) {
@@ -57,34 +52,13 @@ public:
         return false;
     }
 
-    virtual bool
-    block(uint64_t index) override
+    void
+    disconnectAll()
     {
-        for (auto &cb : this->callbacks) {
-            if (cb.index == index) {
-                cb.blocked = true;
-                return true;
-            }
+        for (auto body : this->callbackBodies) {
+            body->disconnect();
         }
-
-        return false;
     }
-
-    virtual bool
-    unblock(uint64_t index) override
-    {
-        for (auto &cb : this->callbacks) {
-            if (cb.index == index) {
-                cb.blocked = false;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-protected:
-    std::vector<Callback> callbacks;
 
 private:
     std::atomic<uint64_t> latestConnection;
@@ -122,116 +96,21 @@ protected:
 
 }  // namespace detail
 
-struct Connection {
-    Connection()
-        : signal(nullptr)
-        , index(0)
-        , blockCounter(0)
-    {
-    }
-
-    Connection(detail::UltraBaseSignal *_signal, uint64_t _index)
-        : signal(_signal)
-        , index(_index)
-    {
-    }
-
-    detail::UltraBaseSignal *signal;
-    uint64_t index;
-
-    bool
-    disconnect()
-    {
-        if (this->signal) {
-            return this->signal->disconnect(this->index);
-        }
-
-        return false;
-    }
-
-    bool
-    block()
-    {
-        if (this->signal) {
-            ++this->blockCounter;
-            if (this->blockCounter == 1) {
-                return this->signal->block(this->index);
-            }
-
-            return false;
-        }
-
-        return false;
-    }
-
-    bool
-    unblock()
-    {
-        if (this->signal) {
-            if (this->blockCounter == 0) {
-                // Cannot unblock more times than you blocked forsenE
-                return false;
-            }
-
-            --this->blockCounter;
-            if (this->blockCounter == 0) {
-                return this->signal->unblock(this->index);
-            }
-
-            return false;
-        }
-
-        return false;
-    }
-
-private:
-    uint32_t blockCounter = 0;
-};
-
-struct ScopedConnection {
-    ScopedConnection(Connection &&_connection)
-        : connection(std::move(_connection))
-    {
-    }
-
-    ~ScopedConnection()
-    {
-        this->connection.disconnect();
-    }
-
-    Connection connection;
-};
-
-struct ScopedBlock {
-    ScopedBlock() = delete;
-
-    ScopedBlock(Connection &_connection)
-        : connection(_connection)
-    {
-        this->connection.block();
-    }
-
-    ~ScopedBlock()
-    {
-        this->connection.unblock();
-    }
-
-    Connection &connection;
-};
-
 // Signal that takes 1+ arguments
-template <class... Args>
+template <typename... Args>
 class Signal : public detail::BaseSignal<Args...>
 {
 public:
     void
     invokeOne(uint64_t index, Args... args)
     {
-        for (auto &callback : this->callbacks) {
-            if (callback.index == index) {
-                if (!callback.blocked) {
+        // This might not be fully functional atm
+        for (auto &callback : this->callbackBodies) {
+            if (callback->index == index) {
+                if (!callback->blocked) {
                     callback.func(args...);
                 }
+
                 break;
             }
         }
@@ -240,10 +119,20 @@ public:
     void
     invoke(Args... args)
     {
-        for (auto &callback : this->callbacks) {
-            if (!callback.blocked) {
-                callback.func(args...);
+        for (auto it = this->callbackBodies.begin(); it != this->callbackBodies.end();) {
+            auto &callback = *it;
+
+            if (!callback->isConnected()) {
+                // Clean up disconnected callbacks
+                it = this->callbackBodies.erase(it);
+                continue;
             }
+
+            if (!callback->isBlocked()) {
+                callback->func(args...);
+            }
+
+            ++it;
         }
     }
 };
@@ -253,12 +142,41 @@ class NoArgSignal : public detail::BaseSignal<>
 {
 public:
     void
+    invokeOne(uint64_t index)
+    {
+        // This might not be fully functional atm
+        for (auto &callback : this->callbackBodies) {
+            if (!callback->isConnected()) {
+                continue;
+            }
+
+            if (callback->index == index) {
+                if (!callback->isBlocked()) {
+                    callback->func();
+                }
+
+                break;
+            }
+        }
+    }
+
+    void
     invoke()
     {
-        for (auto &callback : this->callbacks) {
-            if (!callback.blocked) {
-                callback.func();
+        for (auto it = this->callbackBodies.begin(); it != this->callbackBodies.end();) {
+            auto &callback = *it;
+
+            if (!callback->isConnected()) {
+                // Clean up disconnected callbacks
+                it = this->callbackBodies.erase(it);
+                continue;
             }
+
+            if (!callback->isBlocked()) {
+                callback->func();
+            }
+
+            ++it;
         }
     }
 };
@@ -294,19 +212,20 @@ public:
 
 namespace detail {
 
-template <class... Args>
+template <typename... Args>
 Connection
-BaseSignal<Args...>::connect(CallbackType func)
+BaseSignal<Args...>::connect(typename CallbackBodyType::FunctionSignature func)
 {
     uint64_t connectionIndex = this->nextConnection();
 
-    Callback cb;
-    cb.func = std::move(func);
-    cb.index = connectionIndex;
+    std::shared_ptr<CallbackBodyType> cb(new CallbackBodyType(connectionIndex));
+    cb->func = std::move(func);
 
-    this->callbacks.emplace_back(std::move(cb));
+    std::weak_ptr<CallbackBodyType> weakCallback(cb);
 
-    return Connection(this, connectionIndex);
+    this->callbackBodies.emplace_back(std::move(cb));
+
+    return Connection(weakCallback);
 }
 
 }  // namespace detail
