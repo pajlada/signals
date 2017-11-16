@@ -114,7 +114,10 @@ public:
     {
     }
 
-    Connection(const Connection &other) = delete;
+    Connection(const Connection &other)
+        : weakCallbackBody(other.weakCallbackBody)
+    {
+    }
 
     Connection(const std::weak_ptr<detail::CallbackBodyBase> &connectionBody)
         : weakCallbackBody(connectionBody)
@@ -140,7 +143,17 @@ public:
         return *this;
     }
 
-    Connection &operator=(const Connection &other) = delete;
+    Connection &
+    operator=(const Connection &other)
+    {
+        if (&other == this) {
+            return *this;
+        }
+
+        this->weakCallbackBody = other.weakCallbackBody;
+
+        return *this;
+    }
 
     bool
     disconnect()
@@ -231,6 +244,16 @@ public:
 
     ScopedConnection(Connection &&other)
         : Connection(std::move(other))
+    {
+    }
+
+    ScopedConnection(const Connection &other)
+        : Connection(other)
+    {
+    }
+
+    ScopedConnection(const ScopedConnection &other)
+        : Connection(other)
     {
     }
 
