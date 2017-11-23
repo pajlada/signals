@@ -120,7 +120,7 @@ public:
     invoke(Args... args)
     {
         for (auto it = this->callbackBodies.begin(); it != this->callbackBodies.end();) {
-            auto &callback = *it;
+            std::shared_ptr<CallbackBodyType> &callback = *it;
 
             if (!callback->isConnected()) {
                 // Clean up disconnected callbacks

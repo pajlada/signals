@@ -26,9 +26,21 @@ public:
 
     virtual ~CallbackBodyBase() = default;
 
+    void
+    addRef()
+    {
+        ++this->subscriberRefCount;
+    }
+
     bool
     disconnect()
     {
+        --this->subscriberRefCount;
+
+        if (this->subscriberRefCount > 0) {
+            return false;
+        }
+
         if (this->connected) {
             this->connected = false;
 
@@ -117,11 +129,21 @@ public:
     Connection(const Connection &other)
         : weakCallbackBody(other.weakCallbackBody)
     {
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        if (!connectionBody) {
+            return;
+        }
+        connectionBody->addRef();
     }
 
     Connection(const std::weak_ptr<detail::CallbackBodyBase> &connectionBody)
         : weakCallbackBody(connectionBody)
     {
+        std::shared_ptr<detail::CallbackBodyBase> _connectionBody(this->weakCallbackBody.lock());
+        if (!_connectionBody) {
+            return;
+        }
+        _connectionBody->addRef();
     }
 
     Connection(Connection &&other)
@@ -150,7 +172,21 @@ public:
             return *this;
         }
 
+        {
+            std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+            if (connectionBody) {
+                connectionBody->disconnect();
+            }
+        }
+
         this->weakCallbackBody = other.weakCallbackBody;
+
+        {
+            std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+            if (connectionBody) {
+                connectionBody->addRef();
+            }
+        }
 
         return *this;
     }
