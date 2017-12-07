@@ -135,21 +135,13 @@ public:
     Connection(const Connection &other)
         : weakCallbackBody(other.weakCallbackBody)
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
-        if (!connectionBody) {
-            return;
-        }
-        connectionBody->addRef();
+        this->addRef();
     }
 
     Connection(const std::weak_ptr<detail::CallbackBodyBase> &connectionBody)
         : weakCallbackBody(connectionBody)
     {
-        std::shared_ptr<detail::CallbackBodyBase> _connectionBody(this->weakCallbackBody.lock());
-        if (!_connectionBody) {
-            return;
-        }
-        _connectionBody->addRef();
+        this->addRef();
     }
 
     Connection(Connection &&other)
@@ -288,6 +280,19 @@ public:
 
 private:
     std::weak_ptr<detail::CallbackBodyBase> weakCallbackBody;
+
+    bool
+    addRef()
+    {
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        if (!connectionBody) {
+            return false;
+        }
+
+        connectionBody->addRef();
+
+        return true;
+    }
 };
 
 class ScopedConnection : public Connection
