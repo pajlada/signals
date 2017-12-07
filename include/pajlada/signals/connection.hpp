@@ -17,7 +17,7 @@ protected:
         : index(_index)
         , connected(true)
         , blocked(false)
-        , subscriberRefCount(1)
+        , subscriberRefCount(0)
     {
     }
 
@@ -147,7 +147,7 @@ public:
     Connection(Connection &&other)
         : weakCallbackBody(std::move(other.weakCallbackBody))
     {
-        other.weakCallbackBody.reset();
+        other.disconnect();
     }
 
     Connection &
@@ -157,8 +157,11 @@ public:
             return *this;
         }
 
+        this->disconnect();
+
         this->weakCallbackBody = std::move(other.weakCallbackBody);
-        other.weakCallbackBody.reset();
+
+        other.disconnect();
 
         return *this;
     }
@@ -197,7 +200,11 @@ public:
             return false;
         }
 
-        return connectionBody->disconnect();
+        connectionBody->disconnect();
+
+        this->weakCallbackBody.reset();
+
+        return true;
     }
 
     bool
