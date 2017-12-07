@@ -1,7 +1,7 @@
 #pragma once
 
-#include <mutex>
-#include <vector>
+#include <functional>
+#include <memory>
 
 namespace pajlada {
 namespace Signals {
