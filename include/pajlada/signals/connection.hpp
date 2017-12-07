@@ -56,6 +56,12 @@ public:
         return this->connected;
     }
 
+    unsigned
+    getSubscriberRefCount() const
+    {
+        return this->subscriberRefCount;
+    }
+
     bool
     block()
     {
@@ -211,6 +217,22 @@ public:
         }
 
         return connectionBody->isConnected();
+    }
+
+    struct SubscriberRefCountResponse {
+        unsigned count;
+        bool connected;
+    };
+
+    SubscriberRefCountResponse
+    getSubscriberRefCount()
+    {
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        if (!connectionBody) {
+            return {0, false};
+        }
+
+        return {connectionBody->getSubscriberRefCount(), true};
     }
 
     bool
