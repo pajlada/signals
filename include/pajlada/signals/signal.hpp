@@ -41,14 +41,6 @@ public:
             }
         }
 
-        for (typename std::vector<Callback>::size_type i = 0, n = this->callbacks.size(); i < n;
-             ++i) {
-            if (this->callbacks[i].index == index) {
-                this->callbacks.erase(std::begin(this->callbacks) + i);
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -120,7 +112,7 @@ public:
     invoke(Args... args)
     {
         for (auto it = this->callbackBodies.begin(); it != this->callbackBodies.end();) {
-            std::shared_ptr<CallbackBodyType> &callback = *it;
+            auto &callback = *it;
 
             if (!callback->isConnected()) {
                 // Clean up disconnected callbacks
