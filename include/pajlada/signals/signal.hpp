@@ -40,8 +40,6 @@ public:
                 body->disconnect();
             }
         }
-
-        return false;
     }
 
     void
