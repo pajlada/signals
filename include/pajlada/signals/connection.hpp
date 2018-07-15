@@ -174,7 +174,8 @@ public:
         }
 
         {
-            std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+            std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+                this->weakCallbackBody.lock());
             if (connectionBody) {
                 connectionBody->disconnect();
             }
@@ -183,7 +184,8 @@ public:
         this->weakCallbackBody = other.weakCallbackBody;
 
         {
-            std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+            std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+                this->weakCallbackBody.lock());
             if (connectionBody) {
                 connectionBody->addRef();
             }
@@ -195,7 +197,8 @@ public:
     bool
     disconnect()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -210,7 +213,8 @@ public:
     bool
     isConnected()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -226,7 +230,8 @@ public:
     SubscriberRefCountResponse
     getSubscriberRefCount()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return {0, false};
         }
@@ -237,7 +242,8 @@ public:
     bool
     block()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -248,7 +254,8 @@ public:
     bool
     unblock()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -259,7 +266,8 @@ public:
     bool
     isBlocked()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -271,14 +279,16 @@ public:
     void
     invoke(Args... args)
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return;
         }
 
         try {
             auto advancedConnectionBody =
-                std::static_pointer_cast<detail::CallbackBody<Args...>>(connectionBody);
+                std::static_pointer_cast<detail::CallbackBody<Args...>>(
+                    connectionBody);
             advancedConnectionBody->invoke(args...);
         } catch (...) {
             // TODO: Figure out which exceptino is thrown here
@@ -291,7 +301,8 @@ private:
     bool
     addRef()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(this->weakCallbackBody.lock());
+        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
+            this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
