@@ -327,6 +327,14 @@ public:
     {
     }
 
+    ScopedConnection &
+    operator=(const ScopedConnection &other)
+    {
+        Connection::operator=(other);
+
+        return *this;
+    }
+
     ~ScopedConnection()
     {
         this->disconnect();
