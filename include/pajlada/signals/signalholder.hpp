@@ -19,6 +19,12 @@ public:
     SignalHolder(const SignalHolder &other) = delete;
     SignalHolder &operator=(const SignalHolder &other) = delete;
 
+    void
+    addConnection(Connection &&connection)
+    {
+        this->_managedConnections.emplace_back(connection);
+    }
+
     template <typename Signal, typename Callback>
     void
     managedConnect(Signal &signal, Callback cb)
