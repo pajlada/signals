@@ -109,7 +109,8 @@ public:
     void
     invoke(Args... args)
     {
-        for (auto it = this->callbackBodies.begin(); it != this->callbackBodies.end();) {
+        for (auto it = this->callbackBodies.begin();
+             it != this->callbackBodies.end();) {
             auto &callback = *it;
 
             if (!callback->isConnected()) {
@@ -153,7 +154,8 @@ public:
     void
     invoke()
     {
-        for (auto it = this->callbackBodies.begin(); it != this->callbackBodies.end();) {
+        for (auto it = this->callbackBodies.begin();
+             it != this->callbackBodies.end();) {
             auto &callback = *it;
 
             if (!callback->isConnected()) {

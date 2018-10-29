@@ -119,7 +119,7 @@ public:
     void
     invoke(Args... args)
     {
-        this->func(args...);
+        this->func(std::forward<Args>(args)...);
     }
 };
 
@@ -289,7 +289,7 @@ public:
             auto advancedConnectionBody =
                 std::static_pointer_cast<detail::CallbackBody<Args...>>(
                     connectionBody);
-            advancedConnectionBody->invoke(args...);
+            advancedConnectionBody->invoke(std::forward<Args>(args)...);
         } catch (...) {
             // TODO: Figure out which exceptino is thrown here
         }

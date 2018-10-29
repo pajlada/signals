@@ -31,6 +31,12 @@ public:
     {
         this->_managedConnections.emplace_back(signal.connect(cb));
     }
+
+    void
+    emplace_back(Connection &&connection)
+    {
+        this->_managedConnections.emplace_back(connection);
+    }
 };
 
 }  // namespace Signals
