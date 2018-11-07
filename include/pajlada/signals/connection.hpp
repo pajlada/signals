@@ -133,34 +133,29 @@ public:
     }
 
     Connection(const Connection &other)
-        : weakCallbackBody(other.weakCallbackBody)
     {
-        this->addRef();
+        this->connect(other.weakCallbackBody);
     }
 
     Connection(const std::weak_ptr<detail::CallbackBodyBase> &connectionBody)
-        : weakCallbackBody(connectionBody)
     {
-        this->addRef();
+        this->connect(connectionBody);
     }
 
-    Connection(Connection &&other)
-        : weakCallbackBody(std::move(other.weakCallbackBody))
+    Connection(Connection &&other) noexcept
     {
+        this->connect(other.weakCallbackBody);
         other.disconnect();
     }
 
     Connection &
-    operator=(Connection &&other)
+    operator=(Connection &&other) noexcept
     {
         if (&other == this) {
             return *this;
         }
 
-        this->disconnect();
-
-        this->weakCallbackBody = std::move(other.weakCallbackBody);
-
+        this->connect(other.weakCallbackBody);
         other.disconnect();
 
         return *this;
@@ -173,32 +168,31 @@ public:
             return *this;
         }
 
-        {
-            std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-                this->weakCallbackBody.lock());
-            if (connectionBody) {
-                connectionBody->disconnect();
-            }
-        }
-
-        this->weakCallbackBody = other.weakCallbackBody;
-
-        {
-            std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-                this->weakCallbackBody.lock());
-            if (connectionBody) {
-                connectionBody->addRef();
-            }
-        }
+        // Connect to other's body
+        this->connect(other.weakCallbackBody);
 
         return *this;
+    }
+
+    void
+    connect(std::weak_ptr<detail::CallbackBodyBase> weakBody)
+    {
+        // Disconnect from a previous body
+        this->disconnect();
+
+        auto body = weakBody.lock();
+
+        if (body) {
+            this->weakCallbackBody = body;
+
+            body->addRef();
+        }
     }
 
     bool
     disconnect()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -213,8 +207,7 @@ public:
     bool
     isConnected()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -230,8 +223,7 @@ public:
     SubscriberRefCountResponse
     getSubscriberRefCount()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return {0, false};
         }
@@ -242,8 +234,7 @@ public:
     bool
     block()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -254,8 +245,7 @@ public:
     bool
     unblock()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -266,8 +256,7 @@ public:
     bool
     isBlocked()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -279,8 +268,7 @@ public:
     void
     invoke(Args... args)
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return;
         }
@@ -301,8 +289,7 @@ private:
     bool
     addRef()
     {
-        std::shared_ptr<detail::CallbackBodyBase> connectionBody(
-            this->weakCallbackBody.lock());
+        auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
             return false;
         }
@@ -318,12 +305,12 @@ class ScopedConnection : public Connection
     ScopedConnection() = delete;
 
 public:
-    ScopedConnection(ScopedConnection &&other)
+    ScopedConnection(ScopedConnection &&other) noexcept
         : Connection(std::move(other))
     {
     }
 
-    ScopedConnection(Connection &&other)
+    ScopedConnection(Connection &&other) noexcept
         : Connection(std::move(other))
     {
     }
@@ -340,6 +327,14 @@ public:
 
     ScopedConnection &
     operator=(const ScopedConnection &other)
+    {
+        Connection::operator=(other);
+
+        return *this;
+    }
+
+    ScopedConnection &
+    operator=(ScopedConnection &&other) noexcept
     {
         Connection::operator=(other);
 
