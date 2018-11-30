@@ -35,7 +35,7 @@ public:
     void
     emplace_back(Connection &&connection)
     {
-        this->_managedConnections.emplace_back(connection);
+        this->_managedConnections.emplace_back(std::move(connection));
     }
 };
 
