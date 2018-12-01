@@ -1,5 +1,6 @@
 # Binary file
 /signals
+/build
 
 # C++ objects and libs
 *.slo

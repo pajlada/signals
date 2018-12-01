@@ -1,8 +1,10 @@
-#include "pajlada/signals/signal.hpp"
-
 #include <gtest/gtest.h>
+#include <pajlada/signals/signal.hpp>
+
+#include <vector>
 
 using namespace pajlada::Signals;
+using namespace std;
 
 // TODO(pajlada): Make tests that try to put connections/signals in various STL containers
 
@@ -147,10 +149,10 @@ TEST(ScopedConnection, MoveConstructorFromBase)
     EXPECT_EQ(a, 0);
 
     {
-        ScopedConnection conn(incrementSignal.connect(IncrementA));
+        ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(conn.getSubscriberRefCount().connected);
-        EXPECT_EQ(conn.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -174,10 +176,10 @@ TEST(ScopedConnection, MoveAssignmentOperatorFromBase)
     EXPECT_EQ(a, 0);
 
     {
-        ScopedConnection conn = incrementSignal.connect(IncrementA);
+        ScopedConnection scopedConn = incrementSignal.connect(IncrementA);
 
-        EXPECT_TRUE(conn.getSubscriberRefCount().connected);
-        EXPECT_EQ(conn.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -207,8 +209,8 @@ TEST(ScopedConnection, CopyConstructorFromBase)
         EXPECT_TRUE(conn.getSubscriberRefCount().connected);
         EXPECT_EQ(conn.getSubscriberRefCount().count, 2);
 
-        EXPECT_TRUE(scopedConn.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.getSubscriberRefCount().count, 2);
+        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 2);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -232,30 +234,76 @@ TEST(ScopedConnection, CopyConstructorFromScopedConnection)
     {
         ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(scopedConn.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 1);
 
         ScopedConnection scopedConnCopy(scopedConn);
 
-        EXPECT_TRUE(scopedConn.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.getSubscriberRefCount().count, 2);
+        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 2);
 
-        EXPECT_TRUE(scopedConnCopy.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConnCopy.getSubscriberRefCount().count, 2);
+        EXPECT_TRUE(scopedConnCopy.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConnCopy.c().getSubscriberRefCount().count, 2);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
-
-        EXPECT_TRUE(scopedConn.disconnect());
     }
 
     incrementSignal.invoke(1);
     EXPECT_EQ(a, 1);
 }
 
-int
-main(int argc, char **argv)
+TEST(ScopedConnection, STLContainer)
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    Signal<int> incrementSignal;
+    int a = 0;
+    auto IncrementA = [&a](int incrementBy) {
+        a += incrementBy;  //
+    };
+    EXPECT_EQ(a, 0);
+
+    vector<ScopedConnection> scopedConnections;
+
+    {
+        ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
+
+        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 1);
+
+        ScopedConnection scopedConnCopy(scopedConn);
+
+        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 2);
+
+        ScopedConnection scopedConnMoved(move(scopedConn));
+
+        EXPECT_TRUE(scopedConnMoved.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConnMoved.c().getSubscriberRefCount().count, 2);
+
+        EXPECT_TRUE(scopedConnCopy.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConnCopy.c().getSubscriberRefCount().count, 2);
+
+        scopedConnections.emplace_back(move(scopedConnCopy));
+
+        EXPECT_TRUE(scopedConnMoved.c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConnMoved.c().getSubscriberRefCount().count, 2);
+
+        scopedConnections.emplace_back(move(scopedConnMoved));
+
+        EXPECT_TRUE(
+            scopedConnections.front().c().getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConnections.front().c().getSubscriberRefCount().count,
+                  2);
+
+        incrementSignal.invoke(1);
+        EXPECT_EQ(a, 1);
+    }
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+
+    scopedConnections.clear();
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
 }

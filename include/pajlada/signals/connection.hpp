@@ -128,9 +128,7 @@ public:
 class Connection
 {
 public:
-    Connection()
-    {
-    }
+    Connection() = default;
 
     Connection(const Connection &other)
     {
@@ -300,35 +298,37 @@ private:
     }
 };
 
-class ScopedConnection : public Connection
+class ScopedConnection
 {
-    ScopedConnection() = delete;
+    Connection connection;
 
 public:
+    ScopedConnection() = default;
+
     ScopedConnection(ScopedConnection &&other) noexcept
-        : Connection(std::move(other))
+        : connection(std::move(other.connection))
     {
     }
 
-    ScopedConnection(Connection &&other) noexcept
-        : Connection(std::move(other))
+    ScopedConnection(Connection &&_connection) noexcept
+        : connection(std::move(_connection))
     {
     }
 
     ScopedConnection(const Connection &other)
-        : Connection(other)
+        : connection(other)
     {
     }
 
     ScopedConnection(const ScopedConnection &other)
-        : Connection(other)
+        : connection(other.connection)
     {
     }
 
     ScopedConnection &
     operator=(const ScopedConnection &other)
     {
-        Connection::operator=(other);
+        this->connection = other.connection;
 
         return *this;
     }
@@ -336,15 +336,28 @@ public:
     ScopedConnection &
     operator=(ScopedConnection &&other) noexcept
     {
-        Connection::operator=(other);
+        if (&other == this) {
+            return *this;
+        }
+
+        this->connection = std::move(other.connection);
 
         return *this;
     }
 
     ~ScopedConnection()
     {
-        this->disconnect();
+        this->connection.disconnect();
     }
+
+#ifdef PAJLADA_TESTING
+    // used for testing
+    Connection &
+    c()
+    {
+        return this->connection;
+    }
+#endif
 };
 
 }  // namespace Signals
