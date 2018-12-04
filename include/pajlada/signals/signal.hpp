@@ -9,49 +9,65 @@
 
 namespace pajlada {
 namespace Signals {
-namespace detail {
 
 template <typename... Args>
-class Subscriber
+class Signal
 {
-};
-
-template <typename... Args>
-class BaseSignal
-{
-protected:
-    BaseSignal()
+public:
+    Signal()
         : latestConnection(0)
     {
     }
 
-public:
-    using CallbackBodyType = CallbackBody<Args...>;
+    using CallbackBodyType = detail::CallbackBody<Args...>;
 
-    std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
+    Connection
+    connect(typename CallbackBodyType::FunctionSignature func)
+    {
+        uint64_t connectionIndex = this->nextConnection();
 
-    Connection connect(typename CallbackBodyType::FunctionSignature func);
+        auto callback = std::make_shared<CallbackBodyType>(connectionIndex);
+        callback->func = std::move(func);
+
+        std::weak_ptr<CallbackBodyType> weakCallback(callback);
+
+        this->callbackBodies.emplace_back(std::move(callback));
+
+        return Connection(weakCallback);
+    }
 
     void
-    disconnect(uint64_t index)
+    invoke(Args... args)
     {
-        for (auto body : this->callbackBodies) {
-            if (body->index == index) {
-                body->disconnect();
+        for (auto it = this->callbackBodies.begin();
+             it != this->callbackBodies.end();) {
+            auto &callback = *it;
+
+            if (!callback->isConnected()) {
+                // Clean up disconnected callbacks
+                it = this->callbackBodies.erase(it);
+                continue;
             }
+
+            if (!callback->isBlocked()) {
+                callback->func(std::forward<Args>(args)...);
+            }
+
+            ++it;
         }
     }
 
     void
     disconnectAll()
     {
-        for (auto body : this->callbackBodies) {
+        for (auto &&body : this->callbackBodies) {
             body->disconnect();
         }
     }
 
 private:
     std::atomic<uint64_t> latestConnection;
+    std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
 
     uint64_t
     nextConnection()
@@ -60,16 +76,15 @@ private:
     }
 };
 
+using NoArgSignal = Signal<>;
+
 /// Bolt Signals (1-time use)
 // connect is fast
 // disconnect doesn't exist
 // invoke is fast
 template <class... Args>
-class BaseBoltSignal
+class BoltSignal
 {
-protected:
-    BaseBoltSignal() = default;
-
 protected:
     typedef std::function<void(Args...)> CallbackType;
 
@@ -80,147 +95,21 @@ public:
         this->callbacks.push_back(std::move(cb));
     }
 
+    void
+    invoke(Args... args)
+    {
+        for (auto &callback : this->callbacks) {
+            callback.func(std::forward<Args>(args)...);
+        }
+
+        this->callbacks.clear();
+    }
+
 protected:
     std::vector<CallbackType> callbacks;
 };
 
-}  // namespace detail
-
-// Signal that takes 1+ arguments
-template <typename... Args>
-class Signal : public detail::BaseSignal<Args...>
-{
-public:
-    void
-    invokeOne(uint64_t index, Args... args)
-    {
-        // This might not be fully functional atm
-        for (auto &callback : this->callbackBodies) {
-            if (callback->index == index) {
-                if (!callback->blocked) {
-                    callback.func(args...);
-                }
-
-                break;
-            }
-        }
-    }
-
-    void
-    invoke(Args... args)
-    {
-        for (auto it = this->callbackBodies.begin();
-             it != this->callbackBodies.end();) {
-            auto &callback = *it;
-
-            if (!callback->isConnected()) {
-                // Clean up disconnected callbacks
-                it = this->callbackBodies.erase(it);
-                continue;
-            }
-
-            if (!callback->isBlocked()) {
-                callback->func(args...);
-            }
-
-            ++it;
-        }
-    }
-};
-
-// Signal that takes no arguments
-class NoArgSignal : public detail::BaseSignal<>
-{
-public:
-    void
-    invokeOne(uint64_t index)
-    {
-        // This might not be fully functional atm
-        for (auto &callback : this->callbackBodies) {
-            if (!callback->isConnected()) {
-                continue;
-            }
-
-            if (callback->index == index) {
-                if (!callback->isBlocked()) {
-                    callback->func();
-                }
-
-                break;
-            }
-        }
-    }
-
-    void
-    invoke()
-    {
-        for (auto it = this->callbackBodies.begin();
-             it != this->callbackBodies.end();) {
-            auto &callback = *it;
-
-            if (!callback->isConnected()) {
-                // Clean up disconnected callbacks
-                it = this->callbackBodies.erase(it);
-                continue;
-            }
-
-            if (!callback->isBlocked()) {
-                callback->func();
-            }
-
-            ++it;
-        }
-    }
-};
-
-class NoArgBoltSignal : public detail::BaseBoltSignal<>
-{
-public:
-    void
-    invoke()
-    {
-        for (auto &callback : this->callbacks) {
-            callback();
-        }
-
-        this->callbacks.clear();
-    }
-};
-
-template <class... Args>
-class BoltSignal : public detail::BaseBoltSignal<Args...>
-{
-public:
-    void
-    invoke(Args... args)
-    {
-        for (auto &callback : this->callbacks) {
-            callback.func(args...);
-        }
-
-        this->callbacks.clear();
-    }
-};
-
-namespace detail {
-
-template <typename... Args>
-Connection
-BaseSignal<Args...>::connect(typename CallbackBodyType::FunctionSignature func)
-{
-    uint64_t connectionIndex = this->nextConnection();
-
-    std::shared_ptr<CallbackBodyType> cb(new CallbackBodyType(connectionIndex));
-    cb->func = std::move(func);
-
-    std::weak_ptr<CallbackBodyType> weakCallback(cb);
-
-    this->callbackBodies.emplace_back(std::move(cb));
-
-    return Connection(weakCallback);
-}
-
-}  // namespace detail
+using NoArgBoltSignal = BoltSignal<>;
 
 }  // namespace Signals
 }  // namespace pajlada
