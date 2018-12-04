@@ -4,9 +4,19 @@ compiler:
   - gcc
   - clang
 
+before_install:
+  - sudo apt-et install -y lcov python-yaml
+  - sudo pip install codecov
+
 before_script:
   - mkdir build
   - cd build
   - cmake -DBUILD_TESTS=ON ..
 
-script: make && make test
+script:
+  - make
+  - make test
+  - make signals-test-coverage
+
+after_success:
+  - codecov -X gcov
