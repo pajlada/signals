@@ -2,7 +2,8 @@ language: cpp
 
 compiler:
   - gcc
-  - clang
+    # temporarily disabled clang because travis runs out of memory when running the coverage build
+    # - clang
 
 before_install:
   - sudo apt-get install -y lcov python-yaml
