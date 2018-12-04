@@ -11,7 +11,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - cmake -DBUILD_TESTS=ON ..
+  - cmake -DBUILD_TESTS=ON -DBUILD_COVERAGE=ON ..
 
 script:
   - make
