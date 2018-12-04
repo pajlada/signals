@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/pajlada/signals.svg?branch=master)](https://travis-ci.org/pajlada/signals) [![codecov](https://codecov.io/gh/pajlada/signals/branch/master/graph/badge.svg)](https://codecov.io/gh/pajlada/signals)
 # signals
 simple C++ signal library
 
