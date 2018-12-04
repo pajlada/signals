@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 if (BUILD_TESTS)
+    message("++ Tests enabled")
     # find_package(GTest)
 
     add_subdirectory(external/googletest)
@@ -30,8 +31,19 @@ if (BUILD_TESTS)
 
     target_link_libraries(signals-test gtest gtest_main)
 
-
     # gtest_discover_tests(signals-test)
     add_test(UnitTests signals-test)
+
+    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.travis/cmake)
+
+    if (BUILD_COVERAGE)
+        message("++ Coverage enabled")
+        include(CodeCoverage)
+
+        setup_target_for_coverage(signals-test-coverage signals-test coverage)
+
+        SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+        SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+    endif()
 endif()
 
