@@ -5,7 +5,7 @@ compiler:
   - clang
 
 before_install:
-  - sudo apt-et install -y lcov python-yaml
+  - sudo apt-get install -y lcov python-yaml
   - sudo pip install codecov
 
 before_script:
