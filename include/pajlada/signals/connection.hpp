@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include <memory>
 
@@ -93,7 +94,8 @@ public:
     }
 
 private:
-    bool connected;
+    // probably need to actually mutex-lock anything that would change our connected state
+    std::atomic<bool> connected;
     bool blocked;
 
     unsigned subscriberRefCount;
@@ -119,6 +121,10 @@ public:
     void
     invoke(Args... args)
     {
+        if (!this->isConnected()) {
+            return;
+        }
+
         this->func(std::forward<Args>(args)...);
     }
 };
