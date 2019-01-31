@@ -15,11 +15,6 @@ template <typename... Args>
 class Signal
 {
 public:
-    Signal()
-        : latestConnection(0)
-    {
-    }
-
     using CallbackBodyType = detail::CallbackBody<Args...>;
 
     Connection
@@ -58,7 +53,7 @@ public:
     }
 
 private:
-    std::atomic<uint64_t> latestConnection;
+    std::atomic<uint64_t> latestConnection{0};
 
     std::mutex callbackBodiesMutex;
     std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
