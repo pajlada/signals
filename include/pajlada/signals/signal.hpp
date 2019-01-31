@@ -5,6 +5,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace pajlada {
@@ -31,7 +32,7 @@ public:
 
         std::weak_ptr<CallbackBodyType> weakCallback(callback);
 
-        this->callbackBodies.emplace_back(std::move(callback));
+        this->registerBody(std::move(callback));
 
         return Connection(weakCallback);
     }
@@ -39,6 +40,36 @@ public:
     void
     invoke(Args... args)
     {
+        auto activeBodies = this->getActiveBodies();
+
+        for (const auto &cb : activeBodies) {
+            cb->func(std::forward<Args>(args)...);
+        }
+    }
+
+    void
+    disconnectAll()
+    {
+        std::unique_lock<std::mutex> lock(this->callbackBodiesMutex);
+
+        for (auto &&body : this->callbackBodies) {
+            body->disconnect();
+        }
+    }
+
+private:
+    std::atomic<uint64_t> latestConnection;
+
+    std::mutex callbackBodiesMutex;
+    std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
+
+    std::vector<std::shared_ptr<CallbackBodyType>>
+    getActiveBodies()
+    {
+        std::vector<std::shared_ptr<CallbackBodyType>> activeBodies;
+
+        std::unique_lock<std::mutex> lock(this->callbackBodiesMutex);
+
         for (auto it = this->callbackBodies.begin();
              it != this->callbackBodies.end();) {
             auto &callback = *it;
@@ -50,24 +81,22 @@ public:
             }
 
             if (!callback->isBlocked()) {
-                callback->func(std::forward<Args>(args)...);
+                activeBodies.emplace_back(callback);
             }
 
             ++it;
         }
+
+        return activeBodies;
     }
 
     void
-    disconnectAll()
+    registerBody(std::shared_ptr<CallbackBodyType> &&body)
     {
-        for (auto &&body : this->callbackBodies) {
-            body->disconnect();
-        }
-    }
+        std::unique_lock<std::mutex> lock(this->callbackBodiesMutex);
 
-private:
-    std::atomic<uint64_t> latestConnection;
-    std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
+        this->callbackBodies.emplace_back(std::move(body));
+    }
 
     uint64_t
     nextConnection()
