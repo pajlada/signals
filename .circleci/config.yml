@@ -4,17 +4,17 @@ jobs:
     docker:
       - image: debian:stretch
 
-        steps:
-          - checkout
+    steps:
+      - checkout
 
-          - run:
-            name: Fetch submodules
-            command: git submodule update --init --recursive
+      - run:
+        name: Fetch submodules
+        command: git submodule update --init --recursive
 
-          - run:
-            name: Generate build stuff
-            command: mkdir build; cd build; cmake -DBUILD_TESTS=On -DBUILD_COVERAGE=On ..
+      - run:
+        name: Generate build stuff
+        command: mkdir build; cd build; cmake -DBUILD_TESTS=On -DBUILD_COVERAGE=On ..
 
-          - run:
-            name: Make
-            command: make -j4
+      - run:
+        name: Make
+        command: make -j4
