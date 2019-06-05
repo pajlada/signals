@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: Install required dependencies
-          command: sudo apt update && sudo apt install git clang++
+          command: apt update && apt install git clang++
       - run:
           name: Fetch submodules
           command: git submodule update --init --recursive
