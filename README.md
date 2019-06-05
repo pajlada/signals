@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/pajlada/signals.svg?style=svg)] (https://circleci.com/gh/pajlada/signals)[![TravisCI](https://travis-ci.org/pajlada/signals.svg?branch=master)](https://travis-ci.org/pajlada/signals) [![codecov](https://codecov.io/gh/pajlada/signals/branch/master/graph/badge.svg)](https://codecov.io/gh/pajlada/signals)
+[![CircleCI](https://circleci.com/gh/pajlada/signals.svg?style=svg)](https://circleci.com/gh/pajlada/signals) [![TravisCI](https://travis-ci.org/pajlada/signals.svg?branch=master)](https://travis-ci.org/pajlada/signals) [![codecov](https://codecov.io/gh/pajlada/signals/branch/master/graph/badge.svg)](https://codecov.io/gh/pajlada/signals)
 # signals
 simple C++ signal library
 
