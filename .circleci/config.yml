@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: Install required dependencies
-          command: apt update && apt install -y git
+          command: apt update && apt install -y git cmake
       - run:
           name: Fetch submodules
           command: git submodule update --init --recursive
