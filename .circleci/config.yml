@@ -19,4 +19,4 @@ jobs:
           command: mkdir build; cd build; cmake -DBUILD_TESTS=On -DBUILD_COVERAGE=On ..
       - run:
           name: Make
-          command: make -j4
+          command: cd build && make -j4
