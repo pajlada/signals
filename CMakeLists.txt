@@ -5,7 +5,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
 project(signals)
 
-include_directories(include)
+add_library(PajladaSignals INTERFACE)
+
+target_include_directories(PajladaSignals INTERFACE include)
 
 # Enable C++17
 set(CMAKE_CXX_STANDARD 17)
