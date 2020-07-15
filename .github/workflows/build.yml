@@ -1,0 +1,43 @@
+---
+name: Build
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get -y install cmake clang lcov
+
+      - name: Install Python dependencies
+        run: |
+          sudo pip install codecov
+
+      - name: Build
+        run: |
+            mkdir build
+            cd build
+            cmake -DBUILD_TESTS=On -DBUILD_COVERAGE=On ..
+            make -j4
+
+      - name: Test & Coverage
+        run: |
+            cd build
+            make test
+            make signals-test-coverage
+
+      - name: Upload coverage
+        run: |
+            codecov -X gcov
