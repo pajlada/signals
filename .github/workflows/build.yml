@@ -41,5 +41,7 @@ jobs:
             make signals-test-coverage
 
       - name: Upload coverage
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
             codecov -X gcov
