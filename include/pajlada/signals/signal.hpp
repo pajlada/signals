@@ -135,5 +135,34 @@ protected:
 
 using NoArgBoltSignal = BoltSignal<>;
 
+
+/// Disconnects callback when callback is true
+template <class... Args>
+class SelfDisconnectingSignal
+{
+protected:
+    typedef std::function<bool(Args...)> CallbackType;
+
+public:
+    void
+    connect(CallbackType cb)
+    {
+        this->callbacks.push_back(std::move(cb));
+    }
+
+    void
+    invoke(Args... args)
+    {
+        callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(), [&](CallbackType callback) {
+            return callback(std::forward<Args>(args)...);
+        }), callbacks.end());
+    }
+
+protected:
+    std::vector<CallbackType> callbacks;
+};
+
+using NoArgSelfDisconnectingSignal = SelfDisconnectingSignal<>;
+
 }  // namespace Signals
 }  // namespace pajlada
