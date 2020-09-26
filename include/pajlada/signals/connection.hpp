@@ -334,6 +334,7 @@ public:
     ScopedConnection &
     operator=(const ScopedConnection &other)
     {
+        this->connection.disconnect();
         this->connection = other.connection;
 
         return *this;
@@ -345,7 +346,8 @@ public:
         if (&other == this) {
             return *this;
         }
-
+        
+        this->connection.disconnect();
         this->connection = std::move(other.connection);
 
         return *this;
