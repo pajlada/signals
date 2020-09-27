@@ -289,19 +289,6 @@ public:
 
 private:
     std::weak_ptr<detail::CallbackBodyBase> weakCallbackBody;
-
-    bool
-    addRef()
-    {
-        auto connectionBody(this->weakCallbackBody.lock());
-        if (!connectionBody) {
-            return false;
-        }
-
-        connectionBody->addRef();
-
-        return true;
-    }
 };
 
 class ScopedConnection
