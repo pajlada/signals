@@ -176,7 +176,7 @@ TEST(ScopedConnection, MoveAssignmentOperatorFromBase)
     EXPECT_EQ(a, 0);
 
     {
-        ScopedConnection scopedConn = incrementSignal.connect(IncrementA);
+        ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
 
         EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
         EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 1);
