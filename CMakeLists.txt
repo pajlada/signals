@@ -36,7 +36,7 @@ if (BUILD_TESTS)
     # gtest_discover_tests(signals-test)
     add_test(UnitTests signals-test)
 
-    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.travis/cmake)
+    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.cmake)
 
     if (BUILD_COVERAGE)
 
