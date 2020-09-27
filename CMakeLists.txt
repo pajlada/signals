@@ -36,16 +36,26 @@ if (BUILD_TESTS)
     # gtest_discover_tests(signals-test)
     add_test(UnitTests signals-test)
 
-    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.travis/cmake)
+    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.cmake)
 
     if (BUILD_COVERAGE)
-        message("++ Coverage enabled")
-        include(CodeCoverage)
 
-        setup_target_for_coverage(signals-test-coverage signals-test coverage)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            message("++ Coverage enabled (Clang)")
+            SET(coverage_compile_flags "-g -O0 -fprofile-instr-generate -fcoverage-mapping -fno-inline")
 
-        SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-        SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+            SET(CMAKE_CXX_FLAGS "${coverage_compile_flags}")
+            SET(CMAKE_C_FLAGS "${coverage_compile_flags}")
+        else()
+            message("++ Coverage enabled (GCC)")
+            SET(coverage_compile_flags "-g -O0 -fprofile-arcs -ftest-coverage -fno-inline")
+
+            include(CodeCoverage)
+
+            setup_target_for_coverage(signals-test-coverage signals-test coverage)
+            SET(CMAKE_CXX_FLAGS "${coverage_compile_flags}")
+            SET(CMAKE_C_FLAGS "${coverage_compile_flags}")
+        endif()
     endif()
 endif()
 

@@ -289,19 +289,6 @@ public:
 
 private:
     std::weak_ptr<detail::CallbackBodyBase> weakCallbackBody;
-
-    bool
-    addRef()
-    {
-        auto connectionBody(this->weakCallbackBody.lock());
-        if (!connectionBody) {
-            return false;
-        }
-
-        connectionBody->addRef();
-
-        return true;
-    }
 };
 
 class ScopedConnection
@@ -311,24 +298,32 @@ class ScopedConnection
 public:
     ScopedConnection() = default;
 
-    ScopedConnection(ScopedConnection &&other) noexcept
+    explicit ScopedConnection(ScopedConnection &&other) noexcept
         : connection(std::move(other.connection))
     {
     }
 
-    ScopedConnection(Connection &&_connection) noexcept
+    explicit ScopedConnection(Connection &&_connection) noexcept
         : connection(std::move(_connection))
     {
     }
 
-    ScopedConnection(const Connection &other)
+    explicit ScopedConnection(const Connection &other)
         : connection(other)
     {
     }
 
-    ScopedConnection(const ScopedConnection &other)
+    explicit ScopedConnection(const ScopedConnection &other)
         : connection(other.connection)
     {
+    }
+
+    ScopedConnection &
+    operator=(const Connection &other)
+    {
+        this->connection = other;
+
+        return *this;
     }
 
     ScopedConnection &
@@ -347,6 +342,14 @@ public:
         }
 
         this->connection = std::move(other.connection);
+
+        return *this;
+    }
+
+    ScopedConnection &
+    operator=(Connection &&other) noexcept
+    {
+        this->connection = std::move(other);
 
         return *this;
     }
