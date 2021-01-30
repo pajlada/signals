@@ -298,21 +298,23 @@ class ScopedConnection
 public:
     ScopedConnection() = default;
 
-    explicit ScopedConnection(ScopedConnection &&other) noexcept
+    ScopedConnection(ScopedConnection &&other) noexcept
         : connection(std::move(other.connection))
     {
     }
 
-    explicit ScopedConnection(Connection &&_connection) noexcept
+    ScopedConnection(Connection &&_connection) noexcept
         : connection(std::move(_connection))
     {
     }
 
+    // Copying a connection may have dangerous unseen side-effects, therefore they may not happen unless explicitly converted
     explicit ScopedConnection(const Connection &other)
         : connection(other)
     {
     }
 
+    // Copying a connection may have dangerous unseen side-effects, therefore they may not happen unless explicitly converted
     explicit ScopedConnection(const ScopedConnection &other)
         : connection(other.connection)
     {

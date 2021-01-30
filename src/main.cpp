@@ -487,6 +487,60 @@ TEST(ScopedConnection, STLContainer)
     EXPECT_EQ(a, 2);
 }
 
+TEST(ScopedConnection, VectorPushBack)
+{
+    Signal<int> incrementSignal;
+    int a = 0;
+    auto IncrementA = [&a](int incrementBy) {
+        a += incrementBy;  //
+    };
+    EXPECT_EQ(a, 0);
+
+    vector<ScopedConnection> scopedConnections;
+
+    {
+        scopedConnections.push_back(incrementSignal.connect(IncrementA));
+
+        incrementSignal.invoke(1);
+        EXPECT_EQ(a, 1);
+    }
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+
+    scopedConnections.clear();
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+}
+
+TEST(ScopedConnection, VectorEmplaceBack)
+{
+    Signal<int> incrementSignal;
+    int a = 0;
+    auto IncrementA = [&a](int incrementBy) {
+        a += incrementBy;  //
+    };
+    EXPECT_EQ(a, 0);
+
+    vector<ScopedConnection> scopedConnections;
+
+    {
+        scopedConnections.emplace_back(incrementSignal.connect(IncrementA));
+
+        incrementSignal.invoke(1);
+        EXPECT_EQ(a, 1);
+    }
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+
+    scopedConnections.clear();
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+}
+
 TEST(ScopedConnection, AssignmentOperatorCopyConnection)
 {
     Signal<int> incrementSignal;
