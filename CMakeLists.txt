@@ -31,6 +31,7 @@ if (BUILD_TESTS)
         src/self-disconnecting-signal.cpp
         src/connection.cpp
         src/scoped-connection.cpp
+        src/signal-holder.cpp
         )
 
     add_definitions(-DPAJLADA_TESTING)
