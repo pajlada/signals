@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pajlada/signals/connection.hpp>
+#include <pajlada/signals/scoped-connection.hpp>
 
 #include <vector>
 
