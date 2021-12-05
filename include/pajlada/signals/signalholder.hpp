@@ -49,6 +49,13 @@ public:
         this->add(std::move(signal.connect(cb)));
     }
 
+    // Clear all connections held by this SignalHolder
+    void
+    clear()
+    {
+        this->_managedConnections.clear();
+    }
+
     // Ensure this can be used as a UserManagedConnectionManager in pajlada/settings
     void
     emplace_back(std::unique_ptr<ScopedConnection> &&scopedConnection)
