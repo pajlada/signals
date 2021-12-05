@@ -11,12 +11,9 @@ class ScopedConnection
     Connection connection;
 
 public:
-    ScopedConnection() = default;
+    ScopedConnection() = delete;
 
-    ScopedConnection(ScopedConnection &&other) noexcept
-        : connection(std::move(other.connection))
-    {
-    }
+    ScopedConnection(ScopedConnection &&other) = delete;
 
     ScopedConnection(Connection &&_connection) noexcept
         : connection(std::move(_connection))
@@ -29,47 +26,15 @@ public:
     {
     }
 
-    // Copying a connection may have dangerous unseen side-effects, therefore they may not happen unless explicitly converted
-    explicit ScopedConnection(const ScopedConnection &other)
-        : connection(other.connection)
-    {
-    }
+    ScopedConnection(const ScopedConnection &other) = delete;
 
-    ScopedConnection &
-    operator=(const Connection &other)
-    {
-        this->connection = other;
+    ScopedConnection &operator=(const Connection &other) = delete;
 
-        return *this;
-    }
+    ScopedConnection &operator=(const ScopedConnection &other) = delete;
 
-    ScopedConnection &
-    operator=(const ScopedConnection &other)
-    {
-        this->connection = other.connection;
+    ScopedConnection &operator=(ScopedConnection &&other) = delete;
 
-        return *this;
-    }
-
-    ScopedConnection &
-    operator=(ScopedConnection &&other) noexcept
-    {
-        if (&other == this) {
-            return *this;
-        }
-
-        this->connection = std::move(other.connection);
-
-        return *this;
-    }
-
-    ScopedConnection &
-    operator=(Connection &&other) noexcept
-    {
-        this->connection = std::move(other);
-
-        return *this;
-    }
+    ScopedConnection &operator=(Connection &&other) = delete;
 
     ~ScopedConnection()
     {
