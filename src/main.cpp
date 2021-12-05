@@ -1,5 +1,3 @@
-#include <pajlada/signals/signal.hpp>
-
 #include <gtest/gtest.h>
 
 #include <vector>
