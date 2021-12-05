@@ -1,6 +1,7 @@
+#include <pajlada/signals/signal.hpp>
+
 #include <gtest/gtest.h>
 
-#include <pajlada/signals/signal.hpp>
 #include <vector>
 
 // TODO(pajlada): Make tests that try to put connections/signals in various STL containers

@@ -152,9 +152,12 @@ public:
     void
     invoke(Args... args)
     {
-        callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(), [&](CallbackType callback) {
-            return callback(std::forward<Args>(args)...);
-        }), callbacks.end());
+        callbacks.erase(
+            std::remove_if(callbacks.begin(), callbacks.end(),
+                           [&](CallbackType callback) {
+                               return callback(std::forward<Args>(args)...);
+                           }),
+            callbacks.end());
     }
 
 protected:

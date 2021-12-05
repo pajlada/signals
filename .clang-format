@@ -32,3 +32,13 @@ ColumnLimit: 80
 FixNamespaceComments: true
 
 ReflowComments: false
+
+IncludeBlocks: Regroup
+
+IncludeCategories:
+  - Regex: '^("|<)(pajlada/signals).*'
+    Priority: 1
+  - Regex: '^<[[:alnum].]+/[a-zA-Z\._\/-]+>$'
+    Priority: 3
+  - Regex: '^<[a-zA-Z_]+>$'
+    Priority: 4
