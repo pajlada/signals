@@ -135,7 +135,6 @@ protected:
 
 using NoArgBoltSignal = BoltSignal<>;
 
-
 /// Disconnects callback when callback is true
 template <class... Args>
 class SelfDisconnectingSignal
