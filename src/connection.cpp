@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include <pajlada/signals/signal.hpp>
+
+#include <gtest/gtest.h>
 
 using namespace pajlada::Signals;
 
