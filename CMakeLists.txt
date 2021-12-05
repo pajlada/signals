@@ -27,11 +27,15 @@ if (BUILD_TESTS)
 
     add_executable(signals-test
         src/main.cpp
+        src/signal.cpp
+        src/self-disconnecting-signal.cpp
+        src/connection.cpp
+        src/scoped-connection.cpp
         )
 
     add_definitions(-DPAJLADA_TESTING)
 
-    target_link_libraries(signals-test gtest gtest_main PajladaSignals)
+    target_link_libraries(signals-test gtest PajladaSignals)
 
     # gtest_discover_tests(signals-test)
     add_test(UnitTests signals-test)
