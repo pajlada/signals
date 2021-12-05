@@ -49,10 +49,11 @@ public:
         this->add(std::move(signal.connect(cb)));
     }
 
+    // Ensure this can be used as a UserManagedConnectionManager in pajlada/settings
     void
-    emplace_back(Connection &&connection)
+    emplace_back(std::unique_ptr<ScopedConnection> &&scopedConnection)
     {
-        this->add(std::move(connection));
+        this->add(std::move(scopedConnection));
     }
 };
 
