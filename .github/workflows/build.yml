@@ -21,15 +21,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-20.04, macos-latest]
-        qt-version: [5.15.2, 5.12.12]
-        pch: [true]
-        force-lto: [false]
-        include:
-          - os: ubuntu-20.04
-            qt-version: 5.15.2
-            pch: false
-            force-lto: true
+        os: [windows-latest, ubuntu-22.04, macos-latest]
       fail-fast: false
 
     steps:
@@ -70,5 +62,6 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          gcov: true
           fail_ci_if_error: true
           verbose: true
