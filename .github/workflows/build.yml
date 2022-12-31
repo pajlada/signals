@@ -45,7 +45,7 @@ jobs:
           submodules: true
 
       - name: Enable coverage
-        if: startsWith(matrix.os, 'ubuntu')
+        if: matrix.compiler == 'gcc' && matrix.os == 'ubuntu-22.04'
         run: |
             echo "SIGNALS_COVERAGE=On" >> "$GITHUB_ENV"
 
