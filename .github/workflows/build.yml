@@ -21,7 +21,7 @@ jobs:
           submodules: true
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get -y install cmake clang lcov
+        run: sudo apt-get update && sudo apt-get -y install cmake clang gcovr
 
       - name: Install Python dependencies
         run: |
@@ -38,10 +38,10 @@ jobs:
         run: |
             cd build
             make test
-            make signals-test-coverage
+            make coverage
 
       - name: Upload coverage
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-            codecov -X gcov
+            codecov -X gcovr

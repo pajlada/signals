@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.7.2)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
+list(APPEND CMAKE_MODULE_PATH
+    "${CMAKE_SOURCE_DIR}/.cmake"
+    )
+
 project(signals)
 
 add_library(PajladaSignals INTERFACE)
@@ -17,7 +21,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 if (BUILD_TESTS)
     message("++ Tests enabled")
-    # find_package(GTest)
 
     add_subdirectory(external/googletest)
 
@@ -38,29 +41,17 @@ if (BUILD_TESTS)
 
     target_link_libraries(signals-test gtest PajladaSignals)
 
-    # gtest_discover_tests(signals-test)
     add_test(UnitTests signals-test)
 
-    set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.cmake)
-
     if (BUILD_COVERAGE)
+        include(CodeCoverage)
+        append_coverage_compiler_flags()
+        message("++ Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
 
-        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-            message("++ Coverage enabled (Clang)")
-            SET(coverage_compile_flags "-g -O0 -fprofile-instr-generate -fcoverage-mapping -fno-inline")
-
-            SET(CMAKE_CXX_FLAGS "${coverage_compile_flags}")
-            SET(CMAKE_C_FLAGS "${coverage_compile_flags}")
-        else()
-            message("++ Coverage enabled (GCC)")
-            SET(coverage_compile_flags "-g -O0 -fprofile-arcs -ftest-coverage -fno-inline")
-
-            include(CodeCoverage)
-
-            setup_target_for_coverage(signals-test-coverage signals-test coverage)
-            SET(CMAKE_CXX_FLAGS "${coverage_compile_flags}")
-            SET(CMAKE_C_FLAGS "${coverage_compile_flags}")
-        endif()
+        setup_target_for_coverage_gcovr_html(
+            NAME coverage
+            EXECUTABLE signals-test
+            EXCLUDE "external/*"
+            )
     endif()
 endif()
-
