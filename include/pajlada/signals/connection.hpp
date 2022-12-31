@@ -57,7 +57,7 @@ public:
         return this->connected;
     }
 
-    unsigned
+    [[nodiscard]] unsigned
     getSubscriberRefCount() const
     {
         return this->subscriberRefCount;
@@ -208,7 +208,7 @@ public:
         return true;
     }
 
-    bool
+    [[nodiscard]] bool
     isConnected()
     {
         auto connectionBody(this->weakCallbackBody.lock());
@@ -224,7 +224,7 @@ public:
         bool connected;
     };
 
-    SubscriberRefCountResponse
+    [[nodiscard]] SubscriberRefCountResponse
     getSubscriberRefCount()
     {
         auto connectionBody(this->weakCallbackBody.lock());
