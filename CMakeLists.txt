@@ -55,7 +55,7 @@ if (BUILD_TESTS)
         setup_target_for_coverage_gcovr_html(
             NAME coverage
             EXECUTABLE signals-test
-            EXCLUDE "external/*"
+            EXCLUDE "external/*" "src/*"
             )
     endif()
 endif()
