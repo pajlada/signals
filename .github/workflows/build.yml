@@ -3,45 +3,92 @@ name: Build
 
 on:
   push:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
+    branches:
+      - master
   pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SIGNALS_COVERAGE: "Off"
+  SIGNALS_JOBS: "4"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.os }} with ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            compiler: msvc
+
+          - os: ubuntu-22.04
+            compiler: clang
+          - os: ubuntu-22.04
+            compiler: gcc
+          - os: ubuntu-20.04
+            compiler: clang
+          - os: ubuntu-20.04
+            compiler: gcc
+
+          - os: macos-latest
+            compiler: clang
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get -y install cmake clang gcovr
-
-      - name: Install Python dependencies
+      - name: Enable coverage
+        if: matrix.compiler == 'gcc' && matrix.os == 'ubuntu-22.04'
         run: |
-          sudo pip install codecov
+            echo "SIGNALS_COVERAGE=On" >> "$GITHUB_ENV"
+
+      - name: Fill env
+        shell: bash
+        run: |
+            if [ ${{ matrix.compiler }} = "clang" ]; then
+              echo "CC=clang" >> "$GITHUB_ENV"
+              echo "CXX=clang++" >> "$GITHUB_ENV"
+            fi
+
+      - name: Install dependencies
+        if: env.SIGNALS_COVERAGE == 'On' && startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install gcovr
 
       - name: Build
+        shell: bash
         run: |
             mkdir build
             cd build
-            cmake -DBUILD_TESTS=On -DBUILD_COVERAGE=On ..
-            make -j4
+            cmake \
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DBUILD_TESTS=On \
+                -DBUILD_COVERAGE="$SIGNALS_COVERAGE" \
+                ..
+            cmake --build .
 
-      - name: Test & Coverage
-        run: |
-            cd build
-            make test
-            make coverage
+      - name: Test
+        working-directory: ./build
+        run: ctest
+
+      - name: Generate coverage
+        if: ${{ env.SIGNALS_COVERAGE == 'On' }}
+        working-directory: ./build
+        run: make coverage
 
       - name: Upload coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: |
-            codecov -X gcovr
+        if: ${{ env.SIGNALS_COVERAGE == 'On' }}
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          gcov: true
+          fail_ci_if_error: true
+          verbose: true
