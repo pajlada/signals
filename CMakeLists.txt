@@ -20,6 +20,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 if (BUILD_TESTS)
+     # For MSVC: Prevent overriding the parent project's compiler/linker settings
+    # See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
     message("++ Tests enabled")
 
     add_subdirectory(external/googletest)
