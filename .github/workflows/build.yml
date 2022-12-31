@@ -35,8 +35,8 @@ jobs:
             echo "SIGNALS_COVERAGE=On" >> "$GITHUB_ENV"
 
       - name: Install dependencies
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get update && sudo apt-get -y install cmake clang gcovr
+        if: ${{ env.SIGNALS_COVERAGE == 'On' }} && startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get -y  gcovr
 
       - name: Build
         shell: bash
@@ -44,6 +44,7 @@ jobs:
             mkdir build
             cd build
             cmake \
+                -DCMAKE_BUILD_TYPE=Debug \
                 -DBUILD_TESTS=On \
                 -DBUILD_COVERAGE="$SIGNALS_COVERAGE" \
                 ..
