@@ -20,7 +20,7 @@ TEST(Signal, SingleConnect)
 
     EXPECT_EQ(a, 0);
 
-    incrementSignal.connect(IncrementA);
+    auto connA = incrementSignal.connect(IncrementA);
 
     incrementSignal.invoke(1);
 
@@ -47,8 +47,8 @@ TEST(Signal, MultipleConnect)
 
     EXPECT_EQ(a, 0);
 
-    incrementSignal.connect(IncrementA);
-    incrementSignal.connect(IncrementA);
+    auto connA = incrementSignal.connect(IncrementA);
+    auto connB = incrementSignal.connect(IncrementA);
 
     incrementSignal.invoke(1);
 

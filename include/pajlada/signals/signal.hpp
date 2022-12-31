@@ -17,7 +17,7 @@ class Signal
 public:
     using CallbackBodyType = detail::CallbackBody<Args...>;
 
-    Connection
+    [[nodiscard]] Connection
     connect(typename CallbackBodyType::FunctionSignature func)
     {
         uint64_t connectionIndex = this->nextConnection();
@@ -93,7 +93,7 @@ private:
         this->callbackBodies.emplace_back(std::move(body));
     }
 
-    uint64_t
+    [[nodiscard]] uint64_t
     nextConnection()
     {
         return ++this->latestConnection;
