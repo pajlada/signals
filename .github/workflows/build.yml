@@ -18,11 +18,14 @@ env:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
+    name: Build on ${{ matrix.os }} - ${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-latest, ubuntu-22.04, macos-latest]
+        include:
+          - os: ubuntu-22.04
+            compiler: clang
       fail-fast: false
 
     steps:
@@ -34,6 +37,14 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
             echo "SIGNALS_COVERAGE=On" >> "$GITHUB_ENV"
+
+      - name: Fill env
+        shell: bash
+        run: |
+            if [ ${{ matrix.compiler }} = "clang" ]; then
+              echo "CC=clang" >> "$GITHUB_ENV"
+              echo "CXX=clang++" >> "$GITHUB_ENV"
+            fi
 
       - name: Install dependencies
         if: env.SIGNALS_COVERAGE == 'On' && startsWith(matrix.os, 'ubuntu')
