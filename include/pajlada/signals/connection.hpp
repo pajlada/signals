@@ -1,7 +1,8 @@
 #pragma once
 
-#include <atomic>
+#include <cassert>
 #include <functional>
+#include <iostream>
 #include <memory>
 
 namespace pajlada {
@@ -16,9 +17,6 @@ protected:
 
     explicit CallbackBodyBase(uint64_t _index)
         : index(_index)
-        , connected(true)
-        , blocked(false)
-        , subscriberRefCount(0)
     {
     }
 
@@ -36,25 +34,17 @@ public:
     bool
     disconnect()
     {
+        assert(this->subscriberRefCount > 0);
+
         --this->subscriberRefCount;
 
-        if (this->subscriberRefCount > 0) {
-            return false;
-        }
-
-        if (this->connected) {
-            this->connected = false;
-
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     bool
     isConnected() const
     {
-        return this->connected;
+        return this->subscriberRefCount > 0;
     }
 
     [[nodiscard]] unsigned
@@ -94,11 +84,10 @@ public:
     }
 
 private:
-    // probably need to actually mutex-lock anything that would change our connected state
-    std::atomic<bool> connected;
-    bool blocked;
+    bool blocked{false};
 
-    unsigned subscriberRefCount;
+    // probably need to actually mutex-lock anything that would change our connected state
+    uint32_t subscriberRefCount{0};
 };
 
 template <typename... Args>
