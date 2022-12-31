@@ -44,4 +44,4 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-            codecov -X gcov
+            codecov -X gcovr
