@@ -39,6 +39,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install cmake clang gcovr
 
       - name: Build
+        shell: bash
         run: |
             mkdir build
             cd build
@@ -46,11 +47,11 @@ jobs:
                 -DBUILD_TESTS=On \
                 -DBUILD_COVERAGE="$SIGNALS_COVERAGE" \
                 ..
-            make -j"$SIGNALS_JOBS"
+            cmake --build .
 
       - name: Test
         working-directory: ./build
-        run: make test
+        run: ctest
 
       - name: Generate coverage
         if: ${{ env.SIGNALS_COVERAGE == 'On' }}
