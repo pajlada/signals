@@ -3,45 +3,72 @@ name: Build
 
 on:
   push:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
+    branches:
+      - master
   pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SIGNALS_COVERAGE: "Off"
+  SIGNALS_JOBS: "4"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-20.04, macos-latest]
+        qt-version: [5.15.2, 5.12.12]
+        pch: [true]
+        force-lto: [false]
+        include:
+          - os: ubuntu-20.04
+            qt-version: 5.15.2
+            pch: false
+            force-lto: true
+      fail-fast: false
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get -y install cmake clang gcovr
-
-      - name: Install Python dependencies
+      - name: Enable coverage
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
-          sudo pip install codecov
+            echo "SIGNALS_COVERAGE=On" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get -y install cmake clang gcovr
 
       - name: Build
         run: |
             mkdir build
             cd build
-            cmake -DBUILD_TESTS=On -DBUILD_COVERAGE=On ..
-            make -j4
+            cmake \
+                -DBUILD_TESTS=On \
+                -DBUILD_COVERAGE="$SIGNALS_COVERAGE" \
+                ..
+            make -j"$SIGNALS_JOBS"
 
-      - name: Test & Coverage
-        run: |
-            cd build
-            make test
-            make coverage
+      - name: Test
+        working-directory: ./build
+        run: make test
+
+      - name: Generate coverage
+        if: ${{ env.SIGNALS_COVERAGE == 'On' }}
+        working-directory: ./build
+        run: make coverage
 
       - name: Upload coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: |
-            codecov -X gcovr
+        if: ${{ env.SIGNALS_COVERAGE == 'On' }}
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
