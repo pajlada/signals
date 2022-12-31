@@ -36,7 +36,9 @@ jobs:
 
       - name: Install dependencies
         if: env.SIGNALS_COVERAGE == 'On' && startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get update && sudo apt-get -y  gcovr
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install gcovr
 
       - name: Build
         shell: bash
