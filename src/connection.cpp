@@ -185,6 +185,56 @@ TEST(Connection, AssignmentOperatorCopySelf)
     EXPECT_EQ(a, 4);
 }
 
+TEST(Connection, AssignmentOperatorCopyOther)
+{
+    Signal<int> incrementSignal;
+    int testValue = 0;
+    auto IncrementA = [&testValue](int incrementBy) {
+        testValue += incrementBy;  //
+    };
+    EXPECT_EQ(testValue, 0);
+
+    auto conn = incrementSignal.connect(IncrementA);
+
+    EXPECT_TRUE(conn.getSubscriberRefCount().connected);
+    EXPECT_EQ(conn.getSubscriberRefCount().count, 1);
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 1);
+
+    // Test copying of connection
+    Connection otherConn;
+    EXPECT_FALSE(otherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConn.getSubscriberRefCount().count, 0);
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 2);
+
+    otherConn = conn;
+    EXPECT_TRUE(conn.getSubscriberRefCount().connected);
+    EXPECT_EQ(conn.getSubscriberRefCount().count, 2);
+    EXPECT_TRUE(otherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConn.getSubscriberRefCount().count, 2);
+
+    // Signal should still work
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 3);
+
+    // Disconnect of moved-away connection should return false and not affect the signal
+    EXPECT_TRUE(conn.disconnect());
+    EXPECT_FALSE(conn.getSubscriberRefCount().connected);
+    EXPECT_EQ(conn.getSubscriberRefCount().count, 0);
+    EXPECT_TRUE(otherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConn.getSubscriberRefCount().count, 1);
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 4);
+
+    // Disconnect of moved-to connection should return true and affect the signal
+    EXPECT_TRUE(otherConn.disconnect());
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 4);
+}
+
 TEST(Connection, AssignmentOperatorMove)
 {
     Signal<int> incrementSignal;
@@ -216,6 +266,52 @@ TEST(Connection, AssignmentOperatorMove)
 
     incrementSignal.invoke(1);
     EXPECT_EQ(a, 2);
+}
+
+TEST(Connection, AssignmentOperatorMoveOther)
+{
+    Signal<int> incrementSignal;
+    int testValue = 0;
+    auto IncrementA = [&testValue](int incrementBy) {
+        testValue += incrementBy;  //
+    };
+    EXPECT_EQ(testValue, 0);
+
+    auto conn = incrementSignal.connect(IncrementA);
+
+    EXPECT_TRUE(conn.getSubscriberRefCount().connected);
+    EXPECT_EQ(conn.getSubscriberRefCount().count, 1);
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 1);
+
+    // Test copying of connection
+    Connection otherConn;
+    EXPECT_FALSE(otherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConn.getSubscriberRefCount().count, 0);
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 2);
+
+    otherConn = std::move(conn);
+    EXPECT_FALSE(conn.getSubscriberRefCount().connected);
+    EXPECT_EQ(conn.getSubscriberRefCount().count, 0);
+    EXPECT_TRUE(otherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConn.getSubscriberRefCount().count, 1);
+
+    // Signal should still work
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 3);
+
+    // Disconnect of moved-away connection should return false and not affect the signal
+    EXPECT_FALSE(conn.disconnect());
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 4);
+
+    // Disconnect of moved-to connection should return true and affect the signal
+    EXPECT_TRUE(otherConn.disconnect());
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 4);
 }
 
 TEST(Connection, AssignmentOperatorMoveSelf)
