@@ -13,16 +13,9 @@ namespace detail {
 class CallbackBodyBase
 {
 protected:
-    CallbackBodyBase() = delete;
-
-    explicit CallbackBodyBase(uint64_t _index)
-        : index(_index)
-    {
-    }
+    explicit CallbackBodyBase() = default;
 
 public:
-    const uint64_t index;
-
     virtual ~CallbackBodyBase() = default;
 
     void
@@ -94,12 +87,7 @@ template <typename... Args>
 class CallbackBody : public CallbackBodyBase
 {
 public:
-    CallbackBody() = delete;
-
-    explicit CallbackBody(uint64_t _index)
-        : CallbackBodyBase(_index)
-    {
-    }
+    explicit CallbackBody() = default;
 
     virtual ~CallbackBody() = default;
 

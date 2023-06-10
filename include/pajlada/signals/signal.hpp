@@ -20,9 +20,7 @@ public:
     [[nodiscard]] Connection
     connect(typename CallbackBodyType::FunctionSignature func)
     {
-        uint64_t connectionIndex = this->nextConnection();
-
-        auto callback = std::make_shared<CallbackBodyType>(connectionIndex);
+        auto callback = std::make_shared<CallbackBodyType>();
         callback->func = std::move(func);
 
         std::weak_ptr<CallbackBodyType> weakCallback(callback);
@@ -53,8 +51,6 @@ public:
     }
 
 private:
-    std::atomic<uint64_t> latestConnection{0};
-
     std::mutex callbackBodiesMutex;
     std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
 
@@ -91,12 +87,6 @@ private:
         std::unique_lock<std::mutex> lock(this->callbackBodiesMutex);
 
         this->callbackBodies.emplace_back(std::move(body));
-    }
-
-    [[nodiscard]] uint64_t
-    nextConnection()
-    {
-        return ++this->latestConnection;
     }
 };
 
