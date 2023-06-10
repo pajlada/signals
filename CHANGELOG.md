@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.1.0 - 2023-06-10
+
 - Breaking: Move ScopedConnection to its own file `pajlada/signals/scoped-connection.hpp`. (#15)
 - Breaking: Heavily restrict ScopedConnection, forcing users to store it in a `unique_ptr` instead (or use `SignalHolder` as the helper). (#18)
 - Minor: Add the `clear` method to `SignalHolder`. (#20)
