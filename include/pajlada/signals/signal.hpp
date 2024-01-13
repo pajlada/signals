@@ -2,6 +2,7 @@
 
 #include "pajlada/signals/connection.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <functional>
 #include <memory>
