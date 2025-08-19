@@ -6,7 +6,7 @@
 
 #include <vector>
 
-using namespace pajlada::Signals;
+namespace pajlada::Signals {
 
 // TODO(pajlada): Make tests that try to put connections/signals in various STL containers
 
@@ -22,8 +22,8 @@ TEST(ScopedConnection, MoveConstructorFromBase)
     {
         ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -49,8 +49,8 @@ TEST(ScopedConnection, ConstructFromImplicitlyMovedConnection)
     {
         ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -80,8 +80,8 @@ TEST(ScopedConnection, ConstructFromCopiedConnection)
         EXPECT_TRUE(conn.getSubscriberRefCount().connected);
         EXPECT_EQ(conn.getSubscriberRefCount().count, 2);
 
-        EXPECT_TRUE(scopedConn.c().getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.c().getSubscriberRefCount().count, 2);
+        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 2);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -108,14 +108,15 @@ TEST(ScopedConnection, STLContainer)
         auto scopedConn = std::make_unique<ScopedConnection>(
             incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(scopedConn->c().getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn->c().getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn->connection.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn->connection.getSubscriberRefCount().count, 1);
 
         scopedConnections.emplace_back(std::move(scopedConn));
 
         EXPECT_TRUE(
-            scopedConnections[0]->c().getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConnections[0]->c().getSubscriberRefCount().count, 1);
+            scopedConnections[0]->connection.getSubscriberRefCount().connected);
+        EXPECT_EQ(
+            scopedConnections[0]->connection.getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -186,3 +187,5 @@ TEST(ScopedConnection, VectorEmplaceBack)
     incrementSignal.invoke(1);
     EXPECT_EQ(a, 2);
 }
+
+}  // namespace pajlada::Signals

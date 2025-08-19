@@ -2,6 +2,10 @@
 
 #include "pajlada/signals/connection.hpp"
 
+#if __has_include(<gtest/gtest_prod.h>)
+#include <gtest/gtest_prod.h>
+#endif
+
 namespace pajlada {
 namespace Signals {
 
@@ -9,6 +13,13 @@ namespace Signals {
 class ScopedConnection
 {
     Connection connection;
+
+#if __has_include(<gtest/gtest_prod.h>)
+    FRIEND_TEST(ScopedConnection, MoveConstructorFromBase);
+    FRIEND_TEST(ScopedConnection, ConstructFromImplicitlyMovedConnection);
+    FRIEND_TEST(ScopedConnection, ConstructFromCopiedConnection);
+    FRIEND_TEST(ScopedConnection, STLContainer);
+#endif
 
 public:
     ScopedConnection() = delete;
@@ -40,15 +51,6 @@ public:
     {
         this->connection.disconnect();
     }
-
-#ifdef PAJLADA_TESTING
-    // used for testing
-    Connection &
-    c()
-    {
-        return this->connection;
-    }
-#endif
 };
 
 }  // namespace Signals
