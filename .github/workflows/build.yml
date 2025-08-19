@@ -87,9 +87,9 @@ jobs:
 
       - name: Upload coverage
         if: ${{ env.SIGNALS_COVERAGE == 'On' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          gcov: true
+          plugins: gcov
           fail_ci_if_error: true
           verbose: true
