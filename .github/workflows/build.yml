@@ -27,13 +27,14 @@ jobs:
           - os: windows-latest
             compiler: msvc
 
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: clang
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             compiler: gcc
-          - os: ubuntu-20.04
+          
+          - os: ubuntu-22.04
             compiler: clang
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             compiler: gcc
 
           - os: macos-latest
@@ -45,7 +46,7 @@ jobs:
           submodules: true
 
       - name: Enable coverage
-        if: matrix.compiler == 'gcc' && matrix.os == 'ubuntu-22.04'
+        if: matrix.compiler == 'gcc' && matrix.os == 'ubuntu-24.04'
         run: |
             echo "SIGNALS_COVERAGE=On" >> "$GITHUB_ENV"
 
