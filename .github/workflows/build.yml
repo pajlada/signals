@@ -78,7 +78,7 @@ jobs:
 
       - name: Test
         working-directory: ./build
-        run: ctest
+        run: ctest --output-on-failure
 
       - name: Generate coverage
         if: ${{ env.SIGNALS_COVERAGE == 'On' }}
