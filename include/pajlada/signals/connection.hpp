@@ -124,21 +124,14 @@ public:
     }
 
     Connection(Connection &&other) noexcept
+        : weakCallbackBody(std::move(other.weakCallbackBody))
     {
-        this->connect(other.weakCallbackBody);
-        other.disconnect();
     }
 
     Connection &
     operator=(Connection &&other) noexcept
     {
-        if (&other == this) {
-            return *this;
-        }
-
-        this->connect(other.weakCallbackBody);
-        other.disconnect();
-
+        this->weakCallbackBody = std::move(other.weakCallbackBody);
         return *this;
     }
 
