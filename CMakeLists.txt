@@ -41,8 +41,6 @@ if (BUILD_TESTS)
         src/signal-holder.cpp
         )
 
-    add_definitions(-DPAJLADA_TESTING)
-
     target_link_libraries(signals-test gtest PajladaSignals)
 
     include(GoogleTest)
