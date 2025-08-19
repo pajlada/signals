@@ -266,8 +266,6 @@ public:
 
 private:
     std::weak_ptr<detail::CallbackBodyBase> weakCallbackBody;
-
-    friend class ScopedConnection;
 };
 
 }  // namespace Signals
