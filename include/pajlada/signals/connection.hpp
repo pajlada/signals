@@ -131,6 +131,11 @@ public:
     Connection &
     operator=(Connection &&other) noexcept
     {
+        if (&other == this) {
+            return *this;
+        }
+
+        this->disconnect();
         this->weakCallbackBody = std::move(other.weakCallbackBody);
         return *this;
     }
