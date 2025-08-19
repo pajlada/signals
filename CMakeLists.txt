@@ -45,7 +45,8 @@ if (BUILD_TESTS)
 
     target_link_libraries(signals-test gtest PajladaSignals)
 
-    add_test(UnitTests signals-test)
+    include(GoogleTest)
+    gtest_discover_tests(signals-test)
 
     if (BUILD_COVERAGE)
         include(CodeCoverage)
