@@ -247,6 +247,35 @@ TEST(ScopedConnection, STLContainerUnique)
     EXPECT_EQ(a, 2);
 }
 
+TEST(ScopedConnection, VectorUniquePushBack)
+{
+    Signal<int> incrementSignal;
+    int a = 0;
+    auto IncrementA = [&a](int incrementBy) {
+        a += incrementBy;  //
+    };
+    EXPECT_EQ(a, 0);
+
+    std::vector<std::unique_ptr<ScopedConnection>> scopedConnections;
+
+    {
+        auto scopedConn = std::make_unique<ScopedConnection>(
+            incrementSignal.connect(IncrementA));
+        scopedConnections.emplace_back(std::move(scopedConn));
+
+        incrementSignal.invoke(1);
+        EXPECT_EQ(a, 1);
+    }
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+
+    scopedConnections.clear();
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+}
+
 TEST(ScopedConnection, VectorUniqueEmplaceBack)
 {
     Signal<int> incrementSignal;
