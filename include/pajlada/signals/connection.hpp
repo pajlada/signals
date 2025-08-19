@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstdint>
 #include <functional>
-#include <iostream>
 #include <memory>
 
 namespace pajlada {
