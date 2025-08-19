@@ -37,3 +37,18 @@ Makefile*
 # QtCtreator CMake
 CMakeLists.txt.user
 
+# IntelliJ and friends
+.idea
+
+# VisualStudio
+.vs
+
+# VisualStudio Code
+.vscode
+
+# clangd
+.cache
+.clangd
+
+# CMakePresets
+CMakeUserPresets.json
