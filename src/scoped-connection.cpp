@@ -6,8 +6,7 @@
 
 #include <vector>
 
-namespace pajlada {
-namespace Signals {
+namespace pajlada::Signals {
 
 // TODO(pajlada): Make tests that try to put connections/signals in various STL containers
 
@@ -333,5 +332,4 @@ TEST(ScopedConnection, VectorEmplaceBack)
     EXPECT_EQ(a, 2);
 }
 
-}  // namespace Signals
-}  // namespace pajlada
+}  // namespace pajlada::Signals

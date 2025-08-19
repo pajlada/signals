@@ -13,6 +13,7 @@ class ScopedConnection
 {
     Connection connection;
 
+#if __has_include(<gtest/gtest_prod.h>)
     FRIEND_TEST(ScopedConnection, MoveConstructorFromBase);
     FRIEND_TEST(ScopedConnection, ConstructFromImplicitlyMovedConnection);
     FRIEND_TEST(ScopedConnection, ConstructFromCopiedConnection);
@@ -21,6 +22,7 @@ class ScopedConnection
     FRIEND_TEST(ScopedConnection, MoveConstructSelf);
     FRIEND_TEST(ScopedConnection, MoveAssignSelf);
     FRIEND_TEST(ScopedConnection, MoveAssignConnection);
+#endif
 
 public:
     ScopedConnection() = default;
