@@ -93,7 +93,123 @@ TEST(ScopedConnection, ConstructFromCopiedConnection)
     EXPECT_EQ(a, 1);
 }
 
-TEST(ScopedConnection, STLContainer)
+TEST(ScopedConnection, MoveConstructSelf)
+{
+    Signal<int> signal;
+    int a = 0;
+    auto cb = [&](int i) { a += i; };
+
+    ScopedConnection conn1 = signal.connect(cb);
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+
+    ScopedConnection conn2(std::move(conn1));
+    signal.invoke(1);
+    EXPECT_EQ(a, 2);
+    EXPECT_FALSE(conn1.connection.isConnected());
+    EXPECT_TRUE(conn2.connection.isConnected());
+
+    ScopedConnection conn3(std::move(conn1));
+    signal.invoke(1);
+    EXPECT_EQ(a, 3);
+    EXPECT_FALSE(conn1.connection.isConnected());
+    EXPECT_TRUE(conn2.connection.isConnected());
+    EXPECT_FALSE(conn3.connection.isConnected());
+
+    {
+        ScopedConnection conn4(std::move(conn2));
+        signal.invoke(1);
+        EXPECT_EQ(a, 4);
+        EXPECT_FALSE(conn1.connection.isConnected());
+        EXPECT_FALSE(conn2.connection.isConnected());
+        EXPECT_FALSE(conn3.connection.isConnected());
+        EXPECT_TRUE(conn4.connection.isConnected());
+    }
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 4);
+}
+
+TEST(ScopedConnection, MoveAssignSelf)
+{
+    Signal<int> signal;
+    int a = 0;
+    int b = 0;
+    auto cbA = [&](int i) { a += i; };
+    auto cbB = [&](int i) { b += i; };
+
+    ScopedConnection connA = signal.connect(cbA);
+    ScopedConnection connB = signal.connect(cbB);
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 1);
+
+    connA = std::move(connB);
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 2);
+    EXPECT_TRUE(connA.connection.isConnected());
+    EXPECT_FALSE(connB.connection.isConnected());
+
+    connA = std::move(connA);  // NOLINT
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 3);
+    EXPECT_TRUE(connA.connection.isConnected());
+    EXPECT_FALSE(connB.connection.isConnected());
+
+    connA = ScopedConnection{};
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 3);
+    EXPECT_FALSE(connA.connection.isConnected());
+    EXPECT_FALSE(connB.connection.isConnected());
+}
+
+TEST(ScopedConnection, MoveAssignConnection)
+{
+    Signal<int> signal;
+    int a = 0;
+    int b = 0;
+    auto cbA = [&](int i) { a += i; };
+    auto cbB = [&](int i) { b += i; };
+
+    ScopedConnection connA = signal.connect(cbA);
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 0);
+
+    connA = signal.connect(cbB);
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 1);
+
+    EXPECT_EQ(connA.connection.getSubscriberRefCount().count, 1);
+    Connection copy = connA.connection;
+    EXPECT_EQ(connA.connection.getSubscriberRefCount().count, 2);
+    EXPECT_EQ(copy.getSubscriberRefCount().count, 2);
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 2);
+
+    connA = std::move(copy);
+    EXPECT_EQ(connA.connection.getSubscriberRefCount().count, 1);
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 3);
+
+    connA = ScopedConnection{};
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 1);
+    EXPECT_EQ(b, 3);
+}
+
+TEST(ScopedConnection, STLContainerUnique)
 {
     Signal<int> incrementSignal;
     int a = 0;
@@ -131,7 +247,7 @@ TEST(ScopedConnection, STLContainer)
     EXPECT_EQ(a, 2);
 }
 
-TEST(ScopedConnection, VectorPushBack)
+TEST(ScopedConnection, VectorUniquePushBack)
 {
     Signal<int> incrementSignal;
     int a = 0;
@@ -160,7 +276,7 @@ TEST(ScopedConnection, VectorPushBack)
     EXPECT_EQ(a, 2);
 }
 
-TEST(ScopedConnection, VectorEmplaceBack)
+TEST(ScopedConnection, VectorUniqueEmplaceBack)
 {
     Signal<int> incrementSignal;
     int a = 0;
@@ -185,6 +301,63 @@ TEST(ScopedConnection, VectorEmplaceBack)
     scopedConnections.clear();
 
     incrementSignal.invoke(1);
+    EXPECT_EQ(a, 2);
+}
+
+TEST(ScopedConnection, STLContainer)
+{
+    Signal<int> signal;
+    int a = 0;
+    auto cb = [&](int incrementBy) { a += incrementBy; };
+
+    std::vector<ScopedConnection> connections;
+
+    {
+        ScopedConnection scopedConn = signal.connect(cb);
+
+        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 1);
+
+        connections.emplace_back(std::move(scopedConn));
+
+        EXPECT_TRUE(
+            connections[0].connection.getSubscriberRefCount().connected);
+        EXPECT_EQ(connections[0].connection.getSubscriberRefCount().count, 1);
+
+        signal.invoke(1);
+        EXPECT_EQ(a, 1);
+    }
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 2);
+
+    connections.clear();
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 2);
+}
+
+TEST(ScopedConnection, VectorEmplaceBack)
+{
+    Signal<int> signal;
+    int a = 0;
+    auto cb = [&a](int incrementBy) { a += incrementBy; };
+
+    std::vector<ScopedConnection> connections;
+
+    {
+        connections.emplace_back(signal.connect(cb));
+
+        signal.invoke(1);
+        EXPECT_EQ(a, 1);
+    }
+
+    signal.invoke(1);
+    EXPECT_EQ(a, 2);
+
+    connections.clear();
+
+    signal.invoke(1);
     EXPECT_EQ(a, 2);
 }
 
