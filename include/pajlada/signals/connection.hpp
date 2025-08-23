@@ -234,25 +234,6 @@ public:
         return connectionBody->isBlocked();
     }
 
-    template <typename... Args>
-    void
-    invoke(Args... args)
-    {
-        auto connectionBody(this->weakCallbackBody.lock());
-        if (!connectionBody) {
-            return;
-        }
-
-        try {
-            auto advancedConnectionBody =
-                std::static_pointer_cast<detail::CallbackBody<Args...>>(
-                    connectionBody);
-            advancedConnectionBody->invoke(std::forward<Args>(args)...);
-        } catch (...) {
-            // TODO: Figure out which exceptino is thrown here
-        }
-    }
-
 private:
     std::weak_ptr<detail::CallbackBodyBase> weakCallbackBody;
 };
