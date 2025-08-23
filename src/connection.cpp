@@ -299,19 +299,43 @@ TEST(Connection, AssignmentOperatorMoveOther)
     EXPECT_TRUE(otherConn.getSubscriberRefCount().connected);
     EXPECT_EQ(otherConn.getSubscriberRefCount().count, 1);
 
+    // Test moving to existing connection
+    Connection anotherConn = incrementSignal.connect(IncrementA);
+    EXPECT_TRUE(anotherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(anotherConn.getSubscriberRefCount().count, 1);
+
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 4);
+
+    Connection otherConnBackup = otherConn;
+    EXPECT_TRUE(otherConnBackup.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConnBackup.getSubscriberRefCount().count, 2);
+    otherConn = std::move(anotherConn);
+    EXPECT_FALSE(anotherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(anotherConn.getSubscriberRefCount().count, 0);
+    EXPECT_TRUE(otherConn.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConn.getSubscriberRefCount().count, 1);
+    EXPECT_TRUE(otherConnBackup.getSubscriberRefCount().connected);
+    EXPECT_EQ(otherConnBackup.getSubscriberRefCount().count, 1);
+
     // Signal should still work
     incrementSignal.invoke(1);
-    EXPECT_EQ(testValue, 3);
+    EXPECT_EQ(testValue, 6);
 
     // Disconnect of moved-away connection should return false and not affect the signal
     EXPECT_FALSE(conn.disconnect());
     incrementSignal.invoke(1);
-    EXPECT_EQ(testValue, 4);
+    EXPECT_EQ(testValue, 8);
 
-    // Disconnect of moved-to connection should return true and affect the signal
+    // Disconnect of (another) moved-to connection should return true and affect the signal
     EXPECT_TRUE(otherConn.disconnect());
     incrementSignal.invoke(1);
-    EXPECT_EQ(testValue, 4);
+    EXPECT_EQ(testValue, 9);
+
+    // Disconnect of copied connection should return true and affect the signal
+    EXPECT_TRUE(otherConnBackup.disconnect());
+    incrementSignal.invoke(1);
+    EXPECT_EQ(testValue, 9);
 }
 
 TEST(Connection, AssignmentOperatorMoveSelf)

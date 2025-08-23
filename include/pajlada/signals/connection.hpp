@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <utility>
 
 namespace pajlada {
 namespace Signals {
@@ -124,9 +125,8 @@ public:
     }
 
     Connection(Connection &&other) noexcept
+        : weakCallbackBody(std::move(other.weakCallbackBody))
     {
-        this->connect(other.weakCallbackBody);
-        other.disconnect();
     }
 
     Connection &
@@ -136,9 +136,8 @@ public:
             return *this;
         }
 
-        this->connect(other.weakCallbackBody);
-        other.disconnect();
-
+        this->disconnect();
+        this->weakCallbackBody = std::move(other.weakCallbackBody);
         return *this;
     }
 
