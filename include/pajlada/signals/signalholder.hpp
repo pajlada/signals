@@ -8,7 +8,7 @@
 namespace pajlada {
 namespace Signals {
 
-class SignalHolder
+class SignalHolder final
 {
     std::vector<ScopedConnection> _managedConnections;
 
