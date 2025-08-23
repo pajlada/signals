@@ -2,6 +2,8 @@
 
 #include "pajlada/signals/connection.hpp"
 
+#include <utility>
+
 #if __has_include(<gtest/gtest_prod.h>)
 #include <gtest/gtest_prod.h>
 #endif
