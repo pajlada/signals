@@ -46,9 +46,7 @@ public:
     {
         std::unique_lock<std::mutex> lock(this->callbackBodiesMutex);
 
-        for (auto &&body : this->callbackBodies) {
-            body->disconnect();
-        }
+        this->callbackBodies.clear();
     }
 
 private:
