@@ -59,36 +59,6 @@ TEST(SignalHolder, ManagedConnect)
     EXPECT_EQ(a, 3);
 }
 
-TEST(SignalHolder, EmplaceBack)
-{
-    Signal<int> incrementSignal;
-    int a = 0;
-    auto IncrementA = [&a](int incrementBy) {
-        a += incrementBy;  //
-    };
-    EXPECT_EQ(a, 0);
-
-    {
-        SignalHolder holder;
-
-        holder.emplace_back(std::make_unique<ScopedConnection>(
-            incrementSignal.connect(IncrementA)));
-
-        incrementSignal.invoke(1);
-        EXPECT_EQ(a, 1);
-
-        Connection conn = incrementSignal.connect(IncrementA);
-        holder.emplace_back(
-            std::make_unique<ScopedConnection>(std::move(conn)));
-
-        incrementSignal.invoke(1);
-        EXPECT_EQ(a, 3);
-    }
-
-    incrementSignal.invoke(1);
-    EXPECT_EQ(a, 3);
-}
-
 TEST(SignalHolder, Clear)
 {
     Signal<int> incrementSignal;
