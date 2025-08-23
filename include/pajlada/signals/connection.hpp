@@ -95,16 +95,6 @@ public:
     using FunctionSignature = std::function<void(Args...)>;
 
     FunctionSignature func;
-
-    void
-    invoke(Args... args)
-    {
-        if (!this->isConnected()) {
-            return;
-        }
-
-        this->func(std::forward<Args>(args)...);
-    }
 };
 
 }  // namespace detail
