@@ -1,3 +1,4 @@
+#include "pajlada/signals/connection.hpp"
 #include <pajlada/signals/signal.hpp>
 
 #include <gtest/gtest.h>
