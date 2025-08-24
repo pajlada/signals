@@ -38,7 +38,7 @@ if (BUILD_TESTS)
         src/self-disconnecting-signal.cpp
         src/connection.cpp
         src/scoped-connection.cpp
-        src/signal-holder.cpp
+        src/signalholder.cpp
         )
 
     target_link_libraries(signals-test gtest PajladaSignals)
