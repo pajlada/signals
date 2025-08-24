@@ -40,14 +40,6 @@ public:
         }
     }
 
-    void
-    disconnectAll()
-    {
-        std::unique_lock<std::mutex> lock(this->callbackBodiesMutex);
-
-        this->callbackBodies.clear();
-    }
-
 private:
     std::mutex callbackBodiesMutex;
     std::vector<std::shared_ptr<CallbackBodyType>> callbackBodies;
