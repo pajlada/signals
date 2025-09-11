@@ -22,8 +22,8 @@ TEST(ScopedConnection, MoveConstructorFromBase)
     {
         ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -49,8 +49,8 @@ TEST(ScopedConnection, ConstructFromImplicitlyMovedConnection)
     {
         ScopedConnection scopedConn(incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -80,8 +80,8 @@ TEST(ScopedConnection, ConstructFromCopiedConnection)
         EXPECT_TRUE(conn.getSubscriberRefCount().connected);
         EXPECT_EQ(conn.getSubscriberRefCount().count, 2);
 
-        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 2);
+        EXPECT_TRUE(scopedConn.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.getSubscriberRefCount().count, 2);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -107,24 +107,24 @@ TEST(ScopedConnection, MoveConstructSelf)
     ScopedConnection conn2(std::move(conn1));
     signal.invoke(1);
     EXPECT_EQ(a, 2);
-    EXPECT_FALSE(conn1.connection.isConnected());
-    EXPECT_TRUE(conn2.connection.isConnected());
+    EXPECT_FALSE(conn1.isConnected());
+    EXPECT_TRUE(conn2.isConnected());
 
     ScopedConnection conn3(std::move(conn1));
     signal.invoke(1);
     EXPECT_EQ(a, 3);
-    EXPECT_FALSE(conn1.connection.isConnected());
-    EXPECT_TRUE(conn2.connection.isConnected());
-    EXPECT_FALSE(conn3.connection.isConnected());
+    EXPECT_FALSE(conn1.isConnected());
+    EXPECT_TRUE(conn2.isConnected());
+    EXPECT_FALSE(conn3.isConnected());
 
     {
         ScopedConnection conn4(std::move(conn2));
         signal.invoke(1);
         EXPECT_EQ(a, 4);
-        EXPECT_FALSE(conn1.connection.isConnected());
-        EXPECT_FALSE(conn2.connection.isConnected());
-        EXPECT_FALSE(conn3.connection.isConnected());
-        EXPECT_TRUE(conn4.connection.isConnected());
+        EXPECT_FALSE(conn1.isConnected());
+        EXPECT_FALSE(conn2.isConnected());
+        EXPECT_FALSE(conn3.isConnected());
+        EXPECT_TRUE(conn4.isConnected());
     }
 
     signal.invoke(1);
@@ -150,22 +150,22 @@ TEST(ScopedConnection, MoveAssignSelf)
     signal.invoke(1);
     EXPECT_EQ(a, 1);
     EXPECT_EQ(b, 2);
-    EXPECT_TRUE(connA.connection.isConnected());
-    EXPECT_FALSE(connB.connection.isConnected());
+    EXPECT_TRUE(connA.isConnected());
+    EXPECT_FALSE(connB.isConnected());
 
     connA = std::move(connA);  // NOLINT
     signal.invoke(1);
     EXPECT_EQ(a, 1);
     EXPECT_EQ(b, 3);
-    EXPECT_TRUE(connA.connection.isConnected());
-    EXPECT_FALSE(connB.connection.isConnected());
+    EXPECT_TRUE(connA.isConnected());
+    EXPECT_FALSE(connB.isConnected());
 
     connA = ScopedConnection{};
     signal.invoke(1);
     EXPECT_EQ(a, 1);
     EXPECT_EQ(b, 3);
-    EXPECT_FALSE(connA.connection.isConnected());
-    EXPECT_FALSE(connB.connection.isConnected());
+    EXPECT_FALSE(connA.isConnected());
+    EXPECT_FALSE(connB.isConnected());
 }
 
 TEST(ScopedConnection, MoveAssignConnection)
@@ -186,9 +186,9 @@ TEST(ScopedConnection, MoveAssignConnection)
     EXPECT_EQ(a, 1);
     EXPECT_EQ(b, 1);
 
-    EXPECT_EQ(connA.connection.getSubscriberRefCount().count, 1);
+    EXPECT_EQ(connA.getSubscriberRefCount().count, 1);
     Connection copy = connA.connection;
-    EXPECT_EQ(connA.connection.getSubscriberRefCount().count, 2);
+    EXPECT_EQ(connA.getSubscriberRefCount().count, 2);
     EXPECT_EQ(copy.getSubscriberRefCount().count, 2);
 
     signal.invoke(1);
@@ -196,7 +196,7 @@ TEST(ScopedConnection, MoveAssignConnection)
     EXPECT_EQ(b, 2);
 
     connA = std::move(copy);
-    EXPECT_EQ(connA.connection.getSubscriberRefCount().count, 1);
+    EXPECT_EQ(connA.getSubscriberRefCount().count, 1);
 
     signal.invoke(1);
     EXPECT_EQ(a, 1);
@@ -224,15 +224,13 @@ TEST(ScopedConnection, STLContainerUnique)
         auto scopedConn = std::make_unique<ScopedConnection>(
             incrementSignal.connect(IncrementA));
 
-        EXPECT_TRUE(scopedConn->connection.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn->connection.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn->getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn->getSubscriberRefCount().count, 1);
 
         scopedConnections.emplace_back(std::move(scopedConn));
 
-        EXPECT_TRUE(
-            scopedConnections[0]->connection.getSubscriberRefCount().connected);
-        EXPECT_EQ(
-            scopedConnections[0]->connection.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConnections[0]->getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConnections[0]->getSubscriberRefCount().count, 1);
 
         incrementSignal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -315,14 +313,13 @@ TEST(ScopedConnection, STLContainer)
     {
         ScopedConnection scopedConn = signal.connect(cb);
 
-        EXPECT_TRUE(scopedConn.connection.getSubscriberRefCount().connected);
-        EXPECT_EQ(scopedConn.connection.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(scopedConn.getSubscriberRefCount().connected);
+        EXPECT_EQ(scopedConn.getSubscriberRefCount().count, 1);
 
         connections.emplace_back(std::move(scopedConn));
 
-        EXPECT_TRUE(
-            connections[0].connection.getSubscriberRefCount().connected);
-        EXPECT_EQ(connections[0].connection.getSubscriberRefCount().count, 1);
+        EXPECT_TRUE(connections[0].getSubscriberRefCount().connected);
+        EXPECT_EQ(connections[0].getSubscriberRefCount().count, 1);
 
         signal.invoke(1);
         EXPECT_EQ(a, 1);
@@ -359,6 +356,61 @@ TEST(ScopedConnection, VectorEmplaceBack)
 
     signal.invoke(1);
     EXPECT_EQ(a, 2);
+}
+
+TEST(ScopedConnection, Blocking)
+{
+    Signal<int> signal;
+    int a = 0;
+    auto cb = [&](int i) { a += i; };
+
+    ScopedConnection sc1 = signal.connect(cb);
+    ScopedConnection sc2 = signal.connect(cb);
+
+    ASSERT_FALSE(sc1.isBlocked());
+    ASSERT_FALSE(sc2.isBlocked());
+
+    signal.invoke(1);
+    ASSERT_EQ(a, 2);
+
+    sc2.block();
+    ASSERT_TRUE(sc2.isBlocked());
+
+    signal.invoke(1);
+    ASSERT_EQ(a, 3);
+
+    sc2.unblock();
+    ASSERT_FALSE(sc2.isBlocked());
+
+    signal.invoke(1);
+    ASSERT_EQ(a, 5);
+
+    sc1.block();
+    ASSERT_TRUE(sc1.isBlocked());
+    sc2.block();
+    ASSERT_TRUE(sc2.isBlocked());
+
+    signal.invoke(1);
+    ASSERT_EQ(a, 5);
+
+    sc1 = ScopedConnection{};
+    ASSERT_FALSE(sc1.isBlocked());
+    ASSERT_TRUE(sc2.isBlocked());
+
+    signal.invoke(1);
+    ASSERT_EQ(a, 5);
+
+    sc2.unblock();
+    ASSERT_FALSE(sc2.isBlocked());
+
+    signal.invoke(1);
+    ASSERT_EQ(a, 6);
+
+    sc2 = ScopedConnection{};
+    ASSERT_FALSE(sc2.isBlocked());
+
+    signal.invoke(1);
+    ASSERT_EQ(a, 6);
 }
 
 }  // namespace pajlada::Signals
