@@ -1,3 +1,5 @@
+#include "pajlada/signals/connection.hpp"
+
 #include <pajlada/signals/signal.hpp>
 
 #include <gtest/gtest.h>
@@ -6,26 +8,33 @@ using namespace pajlada::Signals;
 
 TEST(Connection, IsConnected)
 {
-    Signal<int> incrementSignal;
+    Connection conn;
+
     int a = 0;
-    auto IncrementA = [&a](int incrementBy) {
-        a += incrementBy;  //
-    };
-    EXPECT_EQ(a, 0);
+    {
+        Signal<int> incrementSignal;
+        auto IncrementA = [&a](int incrementBy) {
+            a += incrementBy;  //
+        };
+        EXPECT_EQ(a, 0);
 
-    auto conn = incrementSignal.connect(IncrementA);
+        conn = incrementSignal.connect(IncrementA);
 
-    incrementSignal.invoke(1);
+        incrementSignal.invoke(1);
 
-    EXPECT_EQ(a, 1);
+        EXPECT_EQ(a, 1);
 
-    EXPECT_TRUE(conn.isConnected());
-    conn.disconnect();
+        EXPECT_TRUE(conn.isConnected());
+        conn.disconnect();
+        EXPECT_FALSE(conn.isConnected());
+        conn.disconnect();
+        EXPECT_FALSE(conn.isConnected());
+
+        incrementSignal.invoke(1);
+    }
     EXPECT_FALSE(conn.isConnected());
-    conn.disconnect();
-    EXPECT_FALSE(conn.isConnected());
-
-    incrementSignal.invoke(1);
+    EXPECT_EQ(conn.getSubscriberRefCount().connected, false);
+    EXPECT_EQ(conn.getSubscriberRefCount().count, 0);
 
     EXPECT_EQ(a, 1);
 }
