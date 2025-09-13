@@ -16,13 +16,6 @@ class ScopedConnection
     Connection connection;
 
 #if __has_include(<gtest/gtest_prod.h>)
-    FRIEND_TEST(ScopedConnection, MoveConstructorFromBase);
-    FRIEND_TEST(ScopedConnection, ConstructFromImplicitlyMovedConnection);
-    FRIEND_TEST(ScopedConnection, ConstructFromCopiedConnection);
-    FRIEND_TEST(ScopedConnection, STLContainerUnique);
-    FRIEND_TEST(ScopedConnection, STLContainer);
-    FRIEND_TEST(ScopedConnection, MoveConstructSelf);
-    FRIEND_TEST(ScopedConnection, MoveAssignSelf);
     FRIEND_TEST(ScopedConnection, MoveAssignConnection);
 #endif
 
@@ -72,6 +65,39 @@ public:
     ~ScopedConnection()
     {
         this->connection.disconnect();
+    }
+
+    [[nodiscard]]
+    Connection::SubscriberRefCountResponse
+    getSubscriberRefCount() const
+    {
+        return this->connection.getSubscriberRefCount();
+    }
+
+    [[nodiscard]]
+    bool
+    isConnected() const
+    {
+        return this->connection.isConnected();
+    }
+
+    bool
+    block()
+    {
+        return this->connection.block();
+    }
+
+    bool
+    unblock()
+    {
+        return this->connection.unblock();
+    }
+
+    [[nodiscard]]
+    bool
+    isBlocked() const
+    {
+        return this->connection.isBlocked();
     }
 };
 

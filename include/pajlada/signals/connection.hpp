@@ -175,7 +175,7 @@ public:
     }
 
     [[nodiscard]] bool
-    isConnected()
+    isConnected() const
     {
         auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
@@ -191,7 +191,7 @@ public:
     };
 
     [[nodiscard]] SubscriberRefCountResponse
-    getSubscriberRefCount()
+    getSubscriberRefCount() const
     {
         auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
@@ -224,7 +224,7 @@ public:
     }
 
     bool
-    isBlocked()
+    isBlocked() const
     {
         auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
