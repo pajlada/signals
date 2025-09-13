@@ -82,13 +82,13 @@ public:
     }
 
     bool
-    block() const
+    block()
     {
         return this->connection.block();
     }
 
     bool
-    unblock() const
+    unblock()
     {
         return this->connection.unblock();
     }

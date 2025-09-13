@@ -202,7 +202,7 @@ public:
     }
 
     bool
-    block() const
+    block()
     {
         auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
@@ -213,7 +213,7 @@ public:
     }
 
     bool
-    unblock() const
+    unblock()
     {
         auto connectionBody(this->weakCallbackBody.lock());
         if (!connectionBody) {
