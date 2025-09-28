@@ -1,18 +1,32 @@
-option(PAJLADA_SIGNALS_BUILD_COVERAGE "pajlada signals build coverage" OFF)
+cmake_minimum_required(VERSION 3.7...4.0)
+
+project(signals-test)
+
+option(PAJLADA_SIGNALS_BUILD_COVERAGE "Build coverage" OFF)
+add_feature_info("pajlada-signals coverage" PAJLADA_SIGNALS_BUILD_COVERAGE "")
 
 # For MSVC: Prevent overriding the parent project's compiler/linker settings
 # See https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-message("++ Tests enabled")
+include(FetchContent)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/googletest googletest)
+FetchContent_Declare(
+    googletest
+    URL ${CMAKE_CURRENT_LIST_DIR}/../external/googletest
+    EXCLUDE_FROM_ALL
+    FIND_PACKAGE_ARGS NAMES GTest
+)
+
+FetchContent_MakeAvailable(googletest)
+
+include(GoogleTest)
 
 enable_testing()
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-add_executable(signals-test
+add_executable(${PROJECT_NAME}
     src/main.cpp
     src/signal.cpp
     src/self-disconnecting-signal.cpp
@@ -21,10 +35,10 @@ add_executable(signals-test
     src/signalholder.cpp
     )
 
-target_link_libraries(signals-test gtest PajladaSignals)
+target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
+target_link_libraries(${PROJECT_NAME} PRIVATE PajladaSignals)
 
-include(GoogleTest)
-gtest_discover_tests(signals-test)
+gtest_discover_tests(${PROJECT_NAME})
 
 if (PAJLADA_SIGNALS_BUILD_COVERAGE)
     list(APPEND CMAKE_MODULE_PATH
@@ -32,11 +46,10 @@ if (PAJLADA_SIGNALS_BUILD_COVERAGE)
     )
     include(CodeCoverage)
     append_coverage_compiler_flags()
-    message("++ Coverage enabled (${CMAKE_CXX_COMPILER_ID})")
 
     setup_target_for_coverage_gcovr_html(
         NAME coverage
-        EXECUTABLE signals-test
+        EXECUTABLE ${PROJECT_NAME}
         EXCLUDE "external/*" "tests/src/*"
         )
 endif()
