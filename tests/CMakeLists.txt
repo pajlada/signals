@@ -36,7 +36,7 @@ add_executable(${PROJECT_NAME}
     )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
-target_link_libraries(${PROJECT_NAME} PRIVATE PajladaSignals)
+target_link_libraries(${PROJECT_NAME} PRIVATE Pajlada::Signals)
 
 gtest_discover_tests(${PROJECT_NAME})
 
