@@ -73,8 +73,8 @@ jobs:
             cd build
             cmake \
                 -DCMAKE_BUILD_TYPE=Debug \
-                -DBUILD_TESTS=On \
-                -DBUILD_COVERAGE="$SIGNALS_COVERAGE" \
+                -DPAJLADA_SIGNALS_BUILD_TESTS=On \
+                -DPAJLADA_SIGNALS_BUILD_COVERAGE="$SIGNALS_COVERAGE" \
                 ..
             cmake --build .
 
