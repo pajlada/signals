@@ -19,3 +19,28 @@ s.disconnect(cX);
 s.invoke(1, 2);
     
 ```
+
+## Development
+
+```sh
+# Create build dir
+mkdir build
+cd build
+
+cmake \
+    -DPAJLADA_SIGNALS_BUILD_TESTS=On \
+    -DPAJLADA_SIGNALS_BUILD_COVERAGE=On \
+    ..
+
+# Build
+cmake --build .
+
+# Run tests
+ctest
+
+# Generate coverage
+make coverage
+
+# Open generated coverage in your browser
+firefox tests/coverage/index.html
+```
