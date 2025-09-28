@@ -49,6 +49,7 @@ CMakeLists.txt.user
 # clangd
 .cache
 .clangd
+compile_commands.json
 
 # CMakePresets
 CMakeUserPresets.json
