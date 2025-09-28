@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.7...4.0)
 
-option(PAJLADA_SIGNALS_BUILD_TESTS "pajlada signals build tests" OFF)
+include(FeatureSummary)
+
+option(PAJLADA_SIGNALS_BUILD_TESTS "Build tests" OFF)
+add_feature_info("pajlada-signals tests" PAJLADA_SIGNALS_BUILD_TESTS "")
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
@@ -17,5 +20,8 @@ set(CMAKE_CXX_STANDARD 17)
 # set_property(TARGET signals-test PROPERTY CXX_STANDARD_REQUIRED ON)
 
 if(PAJLADA_SIGNALS_BUILD_TESTS)
+    enable_testing()
     add_subdirectory(tests)
 endif()
+
+feature_summary(WHAT ALL)
