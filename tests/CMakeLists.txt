@@ -37,6 +37,6 @@ if (PAJLADA_SIGNALS_BUILD_COVERAGE)
     setup_target_for_coverage_gcovr_html(
         NAME coverage
         EXECUTABLE signals-test
-        EXCLUDE "external/*" "src/*"
+        EXCLUDE "external/*" "tests/src/*"
         )
 endif()
