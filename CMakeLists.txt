@@ -20,7 +20,7 @@ add_feature_info("pajlada-signals tests" PAJLADA_SIGNALS_BUILD_TESTS "")
 add_library(PajladaSignals INTERFACE)
 add_library(Pajlada::Signals ALIAS PajladaSignals)
 
-target_include_directories(PajladaSignals INTERFACE include)
+
 
 if(PAJLADA_SIGNALS_BUILD_TESTS)
     enable_testing()
@@ -28,3 +28,11 @@ if(PAJLADA_SIGNALS_BUILD_TESTS)
 endif()
 
 feature_summary(WHAT ALL)
+
+target_include_directories(PajladaSignals INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+install(TARGETS PajladaSignals EXPORT PajladaSignalsTargets)
+install(EXPORT PajladaSignalsTargets DESTINATION lib/cmake/PajladaSignals)
+install(DIRECTORY include DESTINATION include)
