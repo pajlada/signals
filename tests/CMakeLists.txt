@@ -33,6 +33,7 @@ add_executable(${PROJECT_NAME}
     src/connection.cpp
     src/scoped-connection.cpp
     src/signalholder.cpp
+    src/bolt-signal.cpp
     )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)

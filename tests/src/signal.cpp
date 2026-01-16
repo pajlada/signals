@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 using namespace pajlada::Signals;
 
 TEST(Signal, SingleConnect)
@@ -58,4 +60,31 @@ TEST(Signal, MultipleConnect)
     incrementSignal.invoke(2);
 
     EXPECT_EQ(a, 6);
+}
+
+TEST(Signal, InvokeOwned)
+{
+    Signal<std::string> signal;
+
+    bool called = false;
+    auto consumerOwned = [&](std::string s) {
+        EXPECT_EQ(s, "Yes, this is a really long long string!");
+        called = true;
+    };
+    auto consumerConstRef = [&](const std::string &s) {
+        EXPECT_EQ(s, "Yes, this is a really long long string!");
+        called = true;
+    };
+    auto connA = signal.connect(consumerOwned);
+    auto connB = signal.connect(consumerConstRef);
+    auto connC = signal.connect(consumerOwned);
+    auto connD = signal.connect(consumerConstRef);
+
+    signal.invoke("Yes, this is a really long long string!");
+    EXPECT_TRUE(called);
+    called = false;
+
+    std::string owned = "Yes, this is a really long long string!";
+    signal.invoke(owned);
+    EXPECT_TRUE(called);
 }
