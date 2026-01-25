@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+
+_fedora_versions=("41" "42" "43" "44")
+_build_types=("system")
+
+for _fedora_version in "${_fedora_versions[@]}"; do
+    for _build_type in "${_build_types[@]}"; do
+        (
+            _filename="logs/docker-test-${_fedora_version}-${_build_type}.txt"
+            echo "START docker test fedora ${_fedora_version} ${_build_type} $(date)" | tee -a "$_filename"
+            if docker run --rm "pajlada-signals:fedora-${_fedora_version}-${_build_type}" 2>&1 | tee -a "$_filename"; then
+                echo "DONE docker test fedora ${_fedora_version} ${_build_type} $(date)" | tee -a "$_filename"
+            else
+                echo "ERROR docker test fedora ${_fedora_version} ${_build_type} $(date)" | tee -a "$_filename"
+            fi
+            ) &
+    done
+done
+
+wait
+
+echo "done xd"

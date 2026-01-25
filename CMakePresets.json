@@ -1,0 +1,47 @@
+{
+  "version": 7,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PAJLADA_SIGNALS_BUILD_TESTS": true
+      }
+    },
+    {
+      "name": "asan-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_FLAGS": "-fsanitize=address",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address"
+      }
+    },
+    {
+      "name": "tsan-base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_FLAGS": "-fsanitize=thread",
+        "CMAKE_CXX_FLAGS": "-fsanitize=thread"
+      }
+    },
+    {
+      "name": "debug-asan",
+      "displayName": "Debug + ASAN",
+      "inherits": ["debug", "asan-base"]
+    },
+    {
+      "name": "debug-tsan",
+      "displayName": "Debug + TSAN",
+      "inherits": ["debug", "tsan-base"]
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PAJLADA_SIGNALS_BUILD_TESTS": false
+      }
+    }
+  ]
+}
