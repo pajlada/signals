@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Dev: Added an install target for easier Linux system integration. (#56)
+
 ## v0.1.0 - 2023-06-10
 
 - Breaking: Move ScopedConnection to its own file `pajlada/signals/scoped-connection.hpp`. (#15)

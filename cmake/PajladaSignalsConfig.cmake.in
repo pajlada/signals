@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include(${CMAKE_CURRENT_LIST_DIR}/PajladaSignalsTargets.cmake)
+
+add_library(PajladaSignals ALIAS Pajlada::Signals)
