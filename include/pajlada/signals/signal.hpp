@@ -36,7 +36,7 @@ public:
         auto activeBodies = this->getActiveBodies();
 
         for (const auto &cb : activeBodies) {
-            cb->func(std::forward<Args>(args)...);
+            cb->func(args...);
         }
     }
 
@@ -103,7 +103,7 @@ public:
     invoke(Args... args)
     {
         for (auto &callback : this->callbacks) {
-            callback.func(std::forward<Args>(args)...);
+            callback(args...);
         }
 
         this->callbacks.clear();
@@ -132,12 +132,11 @@ public:
     void
     invoke(Args... args)
     {
-        callbacks.erase(
-            std::remove_if(callbacks.begin(), callbacks.end(),
-                           [&](CallbackType callback) {
-                               return callback(std::forward<Args>(args)...);
-                           }),
-            callbacks.end());
+        callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(),
+                                       [&](CallbackType callback) {
+                                           return callback(args...);
+                                       }),
+                        callbacks.end());
     }
 
 protected:
