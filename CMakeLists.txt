@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.7...4.0)
 list(APPEND CMAKE_MESSAGE_CONTEXT PajladaSignals)
 project(
     PajladaSignals
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "pajlada signals library"
     HOMEPAGE_URL https://github.com/pajlada/signals
     LANGUAGES CXX

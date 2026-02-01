@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.1.1 - 2026-02-01
+
 - Dev: Added an install target for easier Linux system integration. (#56)
 
 ## v0.1.0 - 2023-06-10
