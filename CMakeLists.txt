@@ -25,7 +25,7 @@ add_library(Pajlada::Signals ALIAS PajladaSignals)
 set_target_properties(PajladaSignals PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    EXPORT_NAME Signals
+    EXPORT_NAME PajladaSignals
 )
 
 add_subdirectory(include)
@@ -48,7 +48,6 @@ if(PAJLADA_SIGNALS_INSTALL)
     # Export(?) & install the Targets.cmake file
     install(EXPORT SignalsTargets
         FILE PajladaSignalsTargets.cmake
-        NAMESPACE "Pajlada::"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
 
