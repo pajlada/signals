@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.1.3 - 2026-04-26
+
+- Fix: Unbreak CMake install. (#64)
+
 ## v0.1.2 - 2026-04-26
 
  - Fix: Fixed building with CMake 3.22. (#62)
