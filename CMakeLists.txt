@@ -37,7 +37,7 @@ endif()
 
 
 if(PAJLADA_SIGNALS_INSTALL)
-    if(CMAKE VERSION_LESS 3.23)
+    if(CMAKE_VERSION VERSION_LESS 3.23)
         message(WARNING "Installation requires CMake 3.23 or later")
     else()
         include(CMakePackageConfigHelpers)
