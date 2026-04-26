@@ -1,0 +1,110 @@
+---
+name: Build Linux
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'
+
+concurrency:
+  group: build-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SIGNALS_COVERAGE: "Off"
+  DEBIAN_FRONTEND: "noninteractive"
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }} with ${{ matrix.compiler }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu:26.04
+            compiler: clang
+          - os: ubuntu:26.04
+            compiler: gcc
+
+          - os: ubuntu:24.04
+            compiler: clang
+          - os: ubuntu:24.04
+            compiler: gcc
+
+          - os: ubuntu:22.04
+            compiler: clang
+          - os: ubuntu:22.04
+            compiler: gcc
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Enable coverage
+        if: matrix.compiler == 'gcc' && matrix.os == 'ubuntu:26.04'
+        run: |
+            echo "SIGNALS_COVERAGE=On" >> "$GITHUB_ENV"
+
+      - name: Fill env
+        shell: bash
+        run: |
+            if [ ${{ matrix.compiler }} = "clang" ]; then
+              echo "CC=clang" >> "$GITHUB_ENV"
+              echo "CXX=clang++" >> "$GITHUB_ENV"
+            fi
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get -y install cmake ninja-build libgtest-dev
+          if [ ${{ matrix.compiler }} = "clang" ]; then
+            apt-get -y install clang
+          else
+            apt-get -y install g++
+          fi
+
+      - name: Install coverage dependencies
+        if: env.SIGNALS_COVERAGE == 'On'
+        run: |
+          apt-get update
+          apt-get -y install gcovr git curl gpg
+
+      - name: Build
+        shell: bash
+        run: |
+            mkdir build
+            cd build
+            cmake --version
+            cmake \
+                -G Ninja \
+                --log-level=DEBUG \
+                --log-context \
+                --debug-output \
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DPAJLADA_SIGNALS_BUILD_TESTS=On \
+                -DPAJLADA_SIGNALS_BUILD_COVERAGE="$SIGNALS_COVERAGE" \
+                ..
+            cmake --build .
+
+      - name: Test
+        working-directory: ./build
+        run: ctest --output-on-failure
+
+      - name: Generate coverage
+        if: ${{ env.SIGNALS_COVERAGE == 'On' }}
+        working-directory: ./build
+        run: ninja coverage
+
+      - name: Upload coverage
+        if: ${{ env.SIGNALS_COVERAGE == 'On' }}
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          plugins: gcov
+          fail_ci_if_error: true
+          verbose: true
