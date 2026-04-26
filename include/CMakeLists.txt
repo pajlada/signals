@@ -1,4 +1,4 @@
-if(CMAKE VERSION_GREATER_EQUAL 3.23)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.23)
     target_sources(PajladaSignals INTERFACE
         FILE_SET headers TYPE HEADERS FILES
         pajlada/signals.hpp
