@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7...4.0)
+cmake_minimum_required(VERSION 3.22...4.0)
 
 list(APPEND CMAKE_MESSAGE_CONTEXT PajladaSignals)
 project(
@@ -37,37 +37,41 @@ endif()
 
 
 if(PAJLADA_SIGNALS_INSTALL)
-    include(CMakePackageConfigHelpers)
+    if(CMAKE VERSION_LESS 3.23)
+        message(WARNING "Installation requires CMake 3.23 or later")
+    else()
+        include(CMakePackageConfigHelpers)
 
-    # Install header files
-    install(TARGETS PajladaSignals
-        EXPORT SignalsTargets
-        FILE_SET headers
-    )
+        # Install header files
+        install(TARGETS PajladaSignals
+            EXPORT SignalsTargets
+            FILE_SET headers
+        )
 
-    # Export(?) & install the Targets.cmake file
-    install(EXPORT SignalsTargets
-        FILE PajladaSignalsTargets.cmake
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
-    )
+        # Export(?) & install the Targets.cmake file
+        install(EXPORT SignalsTargets
+            FILE PajladaSignalsTargets.cmake
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+        )
 
-    # Write the ConfigVersion.cmake and Config.cmake files and install them into lib/cmake/ProjectName/
-    write_basic_package_version_file(
-        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfigVersion.cmake
-        VERSION ${PROJECT_VERSION}
-        COMPATIBILITY AnyNewerVersion
-    )
-    configure_package_config_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/PajladaSignalsConfig.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfig.cmake
-        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/PajladaSignals"
-        NO_CHECK_REQUIRED_COMPONENTS_MACRO
-    )
-    install(FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfigVersion.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfig.cmake
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
-    )
+        # Write the ConfigVersion.cmake and Config.cmake files and install them into lib/cmake/ProjectName/
+        write_basic_package_version_file(
+            ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfigVersion.cmake
+            VERSION ${PROJECT_VERSION}
+            COMPATIBILITY AnyNewerVersion
+        )
+        configure_package_config_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/PajladaSignalsConfig.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfig.cmake
+            INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/PajladaSignals"
+            NO_CHECK_REQUIRED_COMPONENTS_MACRO
+        )
+        install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfigVersion.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/PajladaSignalsConfig.cmake
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+        )
+    endif()
 endif()
 
 if(NOT PROJECT_IS_TOP_LEVEL)
