@@ -43,7 +43,7 @@ jobs:
             compiler: gcc
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Enable coverage
         if: matrix.compiler == 'gcc' && matrix.os == 'ubuntu:26.04'
