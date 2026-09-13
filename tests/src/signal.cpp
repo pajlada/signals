@@ -88,3 +88,27 @@ TEST(Signal, InvokeOwned)
     signal.invoke(owned);
     EXPECT_TRUE(called);
 }
+
+namespace pajlada::Signals {
+
+TEST(Signal, BodyCount)
+{
+    auto cb = [](auto s) {};
+    Signal<std::string> signal;
+
+    ASSERT_TRUE(signal.getActiveBodies().empty());
+
+    auto connA = signal.connect(cb);
+    ASSERT_EQ(signal.getActiveBodies().size(), 1);
+
+    connA.disconnect();
+    ASSERT_TRUE(signal.getActiveBodies().empty());
+
+    auto connB = signal.connect(cb);
+    ASSERT_EQ(signal.getActiveBodies().size(), 1);
+
+    auto connC = signal.connect(cb);
+    ASSERT_EQ(signal.getActiveBodies().size(), 2);
+}
+
+}  // namespace pajlada::Signals

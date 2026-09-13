@@ -8,6 +8,10 @@
 #include <mutex>
 #include <vector>
 
+#if __has_include(<gtest/gtest_prod.h>)
+#include <gtest/gtest_prod.h>
+#endif
+
 namespace pajlada {
 namespace Signals {
 
@@ -78,6 +82,10 @@ private:
 
         this->callbackBodies.emplace_back(std::move(body));
     }
+
+#ifdef FRIEND_TEST
+    FRIEND_TEST(Signal, BodyCount);
+#endif
 };
 
 using NoArgSignal = Signal<>;
