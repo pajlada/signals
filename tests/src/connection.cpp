@@ -387,3 +387,17 @@ TEST(Connection, AssignmentOperatorMoveSelf)
     incrementSignal.invoke(1);
     EXPECT_EQ(a, 3);
 }
+
+TEST(Connection, DisconnectAlreadyDisconnectedConnectionIsSafe)
+{
+    auto cb = [](auto) {};
+    Signal<int> incrementSignal;
+
+    auto conn = incrementSignal.connect(cb);
+
+    ASSERT_TRUE(conn.isConnected());
+    ASSERT_TRUE(conn.disconnect());
+    ASSERT_FALSE(conn.isConnected());
+    ASSERT_FALSE(conn.disconnect());
+    ASSERT_FALSE(conn.isConnected());
+}
