@@ -2,16 +2,17 @@
 
 ## Unreleased
 
+- Dev: Add tests for Signal body count. (#68)
+
 ## v0.1.3 - 2026-04-26
 
 - Fix: Unbreak CMake install. (#64)
 
 ## v0.1.2 - 2026-04-26
 
- - Fix: Fixed building with CMake 3.22. (#62)
- - Dev: Made the config installation a bit more careful. (#61)
- - Dev: Updated Linux CI workflow to ensure it builds. (#62)
-
+- Fix: Fixed building with CMake 3.22. (#62)
+- Dev: Made the config installation a bit more careful. (#61)
+- Dev: Updated Linux CI workflow to ensure it builds. (#62)
 
 ## v0.1.1 - 2026-02-01
 
