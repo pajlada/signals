@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Dev: Add tests for Signal body count. (#68)
+- Dev: Add tests for multiple Connection disconnect calls. (#69)
 
 ## v0.1.3 - 2026-04-26
 
